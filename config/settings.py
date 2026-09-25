@@ -1,0 +1,81 @@
+"""
+Configuración global del proyecto Botón de Pago.
+
+Todo se puede sobrescribir con variables de entorno, por ejemplo:
+    MEMPHIS_DISPONIBLE=true CAPTCHA_MODO=manual pytest
+"""
+import os
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parent.parent
+
+
+def _bool(nombre, default="false"):
+    return os.getenv(nombre, default).strip().lower() in ("1", "true", "si", "sí", "yes")
+
+
+# ==============================================
+# DRIVER (APPIUM -> GOOGLE CHROME)
+# ==============================================
+# appium_desktop : Appium server + driver "chromium" -> Chrome de escritorio
+# appium_android : Appium server + UiAutomator2 -> Chrome en Android (TC-BP-048)
+# selenium       : Chrome local sin Appium (respaldo para depurar)
+MODO_DRIVER = os.getenv("MODO_DRIVER", "appium_desktop")
+APPIUM_URL = os.getenv("APPIUM_URL", "http://127.0.0.1:4723")
+ANDROID_DEVICE = os.getenv("ANDROID_DEVICE", "emulator-5554")
+HEADLESS = _bool("HEADLESS")
+VENTANA = (1440, 900)
+TIMEOUT = int(os.getenv("TIMEOUT", "20"))
+
+# ==============================================
+# URLS
+# ==============================================
+URL_GOBIERNO = os.getenv("URL_GOBIERNO", "https://srvtestwl.pueblacapital.gob.mx:7016/pabel/")
+DOMINIO_GOBIERNO = "pueblacapital.gob.mx"
+
+URL_MEMPHIS_PAYOUT = os.getenv(
+    "URL_MEMPHIS_PAYOUT", "https://pagospueblacapital-dev.memphis.mx/payout?token={token}"
+)
+URL_API_TRANSMISION = os.getenv(
+    "URL_API_TRANSMISION", "https://centra.memphis.mx/api-dev/transmission-sequence"
+)
+
+# Mientras el botón de pago no esté disponible, todas las pruebas de Memphis
+# se reportan como "Pendiente". Cambiar a true cuando la integración esté lista.
+MEMPHIS_DISPONIBLE = _bool("MEMPHIS_DISPONIBLE")
+
+# De dónde sale el enlace de pago para cada prueba de Memphis:
+# manual   : se toma de data/enlaces_prueba.json (se consumen uno por prueba)
+# api      : se genera con POST a transmission-sequence (requiere firma HMAC)
+# gobierno : se recorre el portal del Gobierno (Predial -> captcha -> pagar)
+ORIGEN_ENLACE = os.getenv("ORIGEN_ENLACE", "manual")
+
+# ==============================================
+# CAPTCHA (PORTAL DEL GOBIERNO)
+# ==============================================
+# manual        : el script espera a que el tester escriba el captcha en Chrome
+# fijo          : se usa CAPTCHA_VALOR (si el Gobierno habilita un valor fijo en QA)
+# deshabilitado : el ambiente de QA no muestra captcha
+CAPTCHA_MODO = os.getenv("CAPTCHA_MODO", "manual")
+CAPTCHA_VALOR = os.getenv("CAPTCHA_VALOR", "")
+CAPTCHA_TIMEOUT = int(os.getenv("CAPTCHA_TIMEOUT", "120"))
+CAPTCHA_REINTENTOS = int(os.getenv("CAPTCHA_REINTENTOS", "3"))
+
+# ==============================================
+# TIEMPOS DE NEGOCIO (CONFIRMAR CON DESARROLLO)
+# ==============================================
+TOKEN_TTL_SEG = int(os.getenv("TOKEN_TTL_SEG", "900"))  # TODO: confirmar vida del token
+CONTADOR_REDIRECCION_SEG = int(os.getenv("CONTADOR_REDIRECCION_SEG", "10"))
+TIMEOUT_PROCESAMIENTO = int(os.getenv("TIMEOUT_PROCESAMIENTO", "90"))
+TIMEOUT_3DS_SEG = int(os.getenv("TIMEOUT_3DS_SEG", "600"))  # TODO: confirmar con el banco
+
+# ==============================================
+# DATOS Y EVIDENCIA
+# ==============================================
+DIR_DATOS = RAIZ / "data"
+MATRIZ_XLSX = DIR_DATOS / "Matriz Pruebas Boton Pago.xlsx"
+HOJA_MATRIZ = "Matriz de Pruebas"
+CUENTAS_JSON = DIR_DATOS / "cuentas_predial.json"
+TARJETAS_JSON = DIR_DATOS / "tarjetas_prueba.json"
+ENLACES_JSON = DIR_DATOS / "enlaces_prueba.json"
+DIR_EVIDENCIAS = RAIZ / "evidencias"

@@ -1,0 +1,9 @@
+{
+  "_instrucciones": "Tarjetas de PRUEBA del procesador (sandbox). Solicitar a desarrollo Memphis las tarjetas reales de sandbox para cada escenario. Nunca usar tarjetas reales.",
+  "tarjetas": {
+    "aprobada_sin_3ds": {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": false, "codigo_3ds": ""},
+    "aprobada_con_3ds": {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": true, "codigo_3ds": ""},
+    "declinada":        {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": false, "codigo_3ds": ""},
+    "nip_incorrecto":   {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": true, "codigo_3ds": "000000"}
+  }
+}

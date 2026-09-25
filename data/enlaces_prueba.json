@@ -1,0 +1,12 @@
+{
+  "_instrucciones": [
+    "Solo aplica con ORIGEN_ENLACE=manual.",
+    "validos: enlaces de pago sin usar. Cada prueba consume uno y lo mueve a 'usados'.",
+    "vencido / mal_formado / pagado: enlaces fijos para TC-BP-002 y TC-BP-003."
+  ],
+  "validos": [],
+  "usados": [],
+  "vencido": "",
+  "mal_formado": "https://pagospueblacapital-dev.memphis.mx/payout?token=token-invalido-qa",
+  "pagado": ""
+}

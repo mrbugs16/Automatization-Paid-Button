@@ -1,0 +1,14 @@
+{
+  "_instrucciones": [
+    "Lista de cuentas prediales de QA. Reemplaza los valores de ejemplo por cuentas reales del ambiente de pruebas.",
+    "estado: disponible | usada | invalida. Las pruebas toman la primera 'disponible' (o la indicada con --cuenta=<alias>).",
+    "Cuando un pago se completa por el portal del Gobierno, la cuenta se marca como 'usada' automáticamente.",
+    "Se puede buscar por cuenta (tipo + cuenta + delegacion) o por linea_captura (si viene llena, se usa esa)."
+  ],
+  "cuentas": [
+    {"alias": "urbano_01", "tipo": "PU", "cuenta": "0000000", "delegacion": "00", "linea_captura": "", "estado": "disponible", "notas": "EJEMPLO - reemplazar"},
+    {"alias": "urbano_02", "tipo": "PU", "cuenta": "0000000", "delegacion": "00", "linea_captura": "", "estado": "disponible", "notas": "EJEMPLO - reemplazar"},
+    {"alias": "rustico_01", "tipo": "PR", "cuenta": "0000000", "delegacion": "00", "linea_captura": "", "estado": "disponible", "notas": "EJEMPLO - reemplazar"},
+    {"alias": "linea_01", "tipo": "PU", "cuenta": "", "delegacion": "", "linea_captura": "000000000000000000000000", "estado": "disponible", "notas": "EJEMPLO - búsqueda por línea de captura"}
+  ]
+}

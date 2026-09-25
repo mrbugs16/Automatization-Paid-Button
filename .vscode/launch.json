@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Gobierno (Predial)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-m", "gobierno", "--abrir-reporte", "-s"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Memphis (49 casos)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-m", "memphis", "--abrir-reporte", "-s"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": { "MEMPHIS_DISPONIBLE": "false" }
+        },
+        {
+            "name": "Archivo de prueba actual",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["${file}", "-s"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        }
+    ]
+}
