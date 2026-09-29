@@ -72,6 +72,24 @@ class ValidacionPage(MemphisPage):
     def muestra_formulario(self):
         return self.existe(ContactoLoc.INPUT_CORREO)
 
+    def esperar_reaccion_por_token(self, timeout=settings.TIMEOUT_TOKEN_SEG):
+        """Vigila la página sin tocarla hasta 'timeout' segundos. Regresa qué pasó al expirar el token
+        ('recargo' | 'revalidando' | 'invalido' | 'cambio de URL') o None si no pasó nada."""
+        url_inicial = self.driver.current_url
+        self.driver.execute_script("window.__qa_marca = true;")  # desaparece si la página se recarga
+        limite = time.time() + timeout
+        while time.time() < limite:
+            if not self.driver.execute_script("return window.__qa_marca === true;"):
+                return "recargo"
+            if self.driver.find_elements(*ValidacionLoc.SPINNER):
+                return "revalidando"
+            if self._es_invalido(self.driver):
+                return "invalido"
+            if self.driver.current_url != url_inicial:
+                return "cambio de URL"
+            time.sleep(2)
+        return None
+
     def muestra_invalido(self):
         return self._es_invalido(self.driver)
 

@@ -56,6 +56,8 @@ appium driver install chromium
 2. Correr las pruebas:
 
 ```bash
+python3 -m pytest -m "not lento" --abrir-reporte        # TODO de una (~20 min, sin esperas largas)
+python3 -m pytest --abrir-reporte                       # TODO completo (+5 min por el 3DS de TC-BP-028)
 python3 -m pytest -k TC_BP_050 --abrir-reporte          # happy path
 python3 -m pytest -m "memphis and not pago"             # todas las validaciones, sin cobrar
 python3 -m pytest -m memphis                            # Memphis completo (incluye pagos)
@@ -75,7 +77,7 @@ python3 -m pytest -k TC_BP_006                          # un caso
 | `CAPTCHA_MODO` | `manual` · `fijo` · `deshabilitado` | `manual` |
 | `CAPTCHA_VALOR` | valor fijo si el Gobierno lo habilita en QA | — |
 | `CUENTA_ALIAS` | alias de `cuentas_predial.json` | primera `disponible` |
-| `TOKEN_TTL_SEG` | vida del token (TC-BP-005 / 044) | `900` (confirmar con desarrollo) |
+| `TIMEOUT_TOKEN_SEG` | máximo que TC-BP-005/044 esperan a que expire el token | `120` (si no pasa nada, falla por tiempo excedido) |
 
 ---
 
@@ -108,7 +110,7 @@ Como la Fase 1 está fuera de alcance, lo ideal es obtener los enlaces con `ORIG
 `evidencias/<fecha_hora>/reporte.html` incluye un resumen (aprobados / fallidos / pendientes / manuales), filtros por estado, módulo, tipo y prioridad, búsqueda, y las capturas de cada paso (clic para ampliar).
 `matriz_resultados.xlsx` es una copia de la matriz con *Resultado Obtenido* y *Estado* llenos.
 
-Estados: **Aprobado** · **Fallido** (falló una validación) · **Error** (falló la preparación, ej. Appium apagado) · **Pendiente** (falta la página o un dato de prueba) · **Manual** · **No ejecutado**.
+Estados: **Aprobado** · **Fallido** (falló una validación; es un defecto a reportar) · **Error** (falló la preparación, ej. Appium apagado) · **Pendiente** (falta un dato de prueba, o el caso quedó *Bloqueado* porque requiere un pago aprobado) · **Manual** · **No ejecutado**.
 
 ---
 
@@ -116,6 +118,6 @@ Estados: **Aprobado** · **Fallido** (falló una validación) · **Error** (fall
 
 - [ ] Tarjetas sandbox en `data/tarjetas_prueba.local.json` (aprobada con y sin 3DS, declinada, NIP incorrecto)
 - [ ] Algoritmo de `mp_signature` para `ORIGEN_ENLACE=api` (`core/enlace_pago.py::firmar`)
-- [ ] Tiempo de vida del token y del 3DS (`TOKEN_TTL_SEG`, `TIMEOUT_3DS_SEG`)
+- [ ] Tiempo de vida del token y del 3DS (`TIMEOUT_TOKEN_SEG`, `TIMEOUT_3DS_SEG`)
 - [ ] Botón del portal del Gobierno que redirige a Memphis (`GobiernoLoc.BTN_PAGAR_EN_LINEA`)
 - [ ] Validación de "un solo cobro" en backend (TC-BP-004, 035, 037, 042, 043)

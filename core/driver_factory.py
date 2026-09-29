@@ -66,13 +66,19 @@ def crear_driver(modo=None):
     return driver
 
 
+def ejecutar_cdp(driver, comando, parametros=None):
+    """Envía un comando del protocolo de depuración de Chrome (CDP).
+    El driver Chromium de Appium reenvía el endpoint de chromedriver /goog/cdp/execute."""
+    if "cdp_execute" not in driver.command_executor._commands:
+        driver.command_executor.add_command("cdp_execute", "POST", "/session/$sessionId/goog/cdp/execute")
+    return driver.execute("cdp_execute", {"cmd": comando, "params": parametros or {}})["value"]
+
+
 def simular_sin_conexion(driver, sin_conexion=True):
     """Corta/restablece la red del navegador (TC-BP-041 y TC-BP-042)."""
-    condiciones = {"offline": sin_conexion, "latency": 0,
-                   "download_throughput": -1, "upload_throughput": -1}
-    if hasattr(driver, "set_network_conditions"):          # Selenium Chrome
-        driver.set_network_conditions(**condiciones)
-    elif hasattr(driver, "set_network_connection"):        # Appium Android
+    if settings.MODO_DRIVER == "appium_android":
         driver.set_network_connection(0 if sin_conexion else 6)
-    else:
-        raise NotImplementedError("El driver actual no permite simular pérdida de conexión")
+        return
+    ejecutar_cdp(driver, "Network.enable")
+    ejecutar_cdp(driver, "Network.emulateNetworkConditions", {
+        "offline": sin_conexion, "latency": 0, "downloadThroughput": -1, "uploadThroughput": -1})

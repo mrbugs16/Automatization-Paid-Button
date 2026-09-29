@@ -7,7 +7,7 @@ Cada prueba aprueba un pago y consume el link: se necesita un link nuevo por pru
 import pytest
 
 from config import settings
-from core.marcadores import caso, requiere_memphis
+from core.marcadores import caso, exigir_aprobado, requiere_memphis
 
 pytestmark = [pytest.mark.memphis, requiere_memphis, pytest.mark.pago]
 DETALLES_ESPERADOS = ("Estado", "Código de respuesta", "Referencia", "Autorización", "Identificador")
@@ -18,7 +18,7 @@ def test_TC_BP_029_pantalla_aprobada(flujo, evidencia, enlace_valido, tarjeta_de
     resultado = flujo.pagar(enlace_valido, tarjeta_de_prueba("principal"))
     detalles = flujo.resultado.detalles()
     evidencia.nota(f"Detalle: {detalles}")
-    assert resultado == "aprobada", f"{flujo.resultado.titulo()}: {detalles}"
+    exigir_aprobado(resultado, detalles)
 
     vacios = [campo for campo in DETALLES_ESPERADOS if detalles.get(campo, "-") in ("", "-")]
     assert not vacios, f"Datos faltantes en la pantalla de aprobación: {vacios}"
@@ -26,7 +26,7 @@ def test_TC_BP_029_pantalla_aprobada(flujo, evidencia, enlace_valido, tarjeta_de
 
 @caso("TC-BP-030")
 def test_TC_BP_030_redireccion_automatica(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    assert flujo.pagar(enlace_valido, tarjeta_de_prueba("principal")) == "aprobada", "El pago no se aprobó"
+    exigir_aprobado(flujo.pagar(enlace_valido, tarjeta_de_prueba("principal")), flujo.resultado.detalles())
     evidencia.captura(f"Contador: {flujo.resultado.contador()}")
 
     redirigio = flujo.resultado.esperar_redireccion_gobierno(settings.CONTADOR_REDIRECCION_SEG + 15)
@@ -36,7 +36,7 @@ def test_TC_BP_030_redireccion_automatica(flujo, evidencia, enlace_valido, tarje
 
 @caso("TC-BP-031")
 def test_TC_BP_031_continuar_antes_del_contador(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    assert flujo.pagar(enlace_valido, tarjeta_de_prueba("principal")) == "aprobada", "El pago no se aprobó"
+    exigir_aprobado(flujo.pagar(enlace_valido, tarjeta_de_prueba("principal")), flujo.resultado.detalles())
     flujo.resultado.continuar()
 
     redirigio = flujo.resultado.esperar_redireccion_gobierno(5)

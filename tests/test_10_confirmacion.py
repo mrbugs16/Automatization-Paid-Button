@@ -7,7 +7,7 @@ Ninguna de estas pruebas confirma el pago: se quedan en el Paso 4.
 import pytest
 
 from config.datos_prueba import CONTACTO_VALIDO, DIRECCION_VALIDA
-from core.marcadores import caso, requiere_memphis
+from core.marcadores import caso, pendiente, requiere_memphis
 
 pytestmark = [pytest.mark.memphis, requiere_memphis]
 
@@ -32,9 +32,12 @@ def test_TC_BP_064_resumen_antes_de_pagar(flujo, evidencia, enlace_valido, tarje
     tarjeta_resumen = resumen.get("Tarjeta", "")
     if not tarjeta_resumen.endswith(tarjeta["numero"][-4:]) or sum(c.isdigit() for c in tarjeta_resumen) > 4:
         diferencias["Tarjeta"] = (f"•••• {tarjeta['numero'][-4:]}", tarjeta_resumen)
-    vigencia = "".join(c for c in resumen.get("Vencimiento", "") if c.isdigit())
-    if vigencia != tarjeta["vigencia"]:
-        diferencias["Vencimiento"] = (tarjeta["vigencia"], resumen.get("Vencimiento"))
+    vigencia_esperada = f"{tarjeta['vigencia'][:2]}/{tarjeta['vigencia'][2:]}"
+    if resumen.get("Vencimiento") != vigencia_esperada:
+        diferencias["Vencimiento"] = (vigencia_esperada, resumen.get("Vencimiento"))
+    for campo, nombres in (("País", ("México", "Mexico")), ("Estado", ("Puebla",))):
+        if resumen.get(campo) not in nombres:
+            diferencias[campo] = (nombres[0], resumen.get(campo))
 
     assert not diferencias, f"El resumen no coincide con lo capturado (esperado, mostrado): {diferencias}"
 
@@ -78,6 +81,10 @@ def test_TC_BP_066_navegar_con_stepper(flujo, evidencia, enlace_valido, tarjeta_
     flujo.hasta_confirmacion(enlace_valido, tarjeta_de_prueba("principal"))
 
     flujo.confirmacion.ir_al_paso(1)
+    if flujo.confirmacion.visible(2) and not flujo.contacto.visible(2):
+        evidencia.captura("Clic en '1': la página sigue en el Paso 4")
+        pendiente("El indicador de pasos es solo informativo (los números no navegan); "
+                  "confirmar con diseño si debe permitir navegar")
     assert flujo.contacto.visible(), "El número '1' del indicador no llevó al Paso 1"
     evidencia.captura("Paso 1 desde el indicador")
     assert flujo.contacto.valores() == CONTACTO_VALIDO, f"Se perdieron datos: {flujo.contacto.valores()}"

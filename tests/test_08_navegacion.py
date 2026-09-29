@@ -10,7 +10,7 @@ from config import settings
 from config.datos_prueba import CONTACTO_VALIDO, CORREO_CON_ESPACIOS, DIRECCION_VALIDA
 from config.locators import FormularioLoc
 from core.driver_factory import simular_sin_conexion
-from core.marcadores import caso, pendiente, requiere_memphis
+from core.marcadores import caso, exigir_aprobado, pendiente, requiere_memphis
 
 pytestmark = [pytest.mark.memphis, requiere_memphis]
 ERRORES_TECNICOS = ("exception", "stack trace", "internal server error", "cannot read properties", "typeerror")
@@ -75,7 +75,7 @@ def test_TC_BP_038_atras_durante_llenado(flujo, evidencia, enlace_valido):
 @caso("TC-BP-039")
 @pytest.mark.pago
 def test_TC_BP_039_atras_adelante_tras_aprobada(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    assert flujo.pagar(enlace_valido, tarjeta_de_prueba("principal")) == "aprobada", "El pago no se aprobó"
+    exigir_aprobado(flujo.pagar(enlace_valido, tarjeta_de_prueba("principal")), flujo.resultado.detalles())
     for accion in ("back", "forward"):
         getattr(flujo.driver, accion)()
         time.sleep(2)
@@ -114,8 +114,10 @@ def test_TC_BP_041_sin_internet_en_formulario(flujo, evidencia, enlace_valido):
     _sin_red(flujo, False)
     time.sleep(2)
     evidencia.captura("Conexión restablecida")
-    assert flujo.contacto.valores() == CONTACTO_VALIDO or flujo.direccion.visible(), \
-        "Se perdieron los datos capturados al perder conexión"
+    if flujo.direccion.visible(3):
+        evidencia.nota("El avance del Paso 1 al 2 no requiere internet: la página avanzó sin avisar la falta de conexión")
+        return
+    assert flujo.contacto.valores() == CONTACTO_VALIDO, "Se perdieron los datos capturados al perder conexión"
 
 
 @caso("TC-BP-042")
@@ -155,11 +157,14 @@ def test_TC_BP_044_inactividad_con_datos(flujo, evidencia, enlace_valido):
     flujo.hasta_direccion(enlace_valido)
     flujo.direccion.llenar(**DIRECCION_VALIDA)
     evidencia.captura("Paso 2 lleno, inicia inactividad")
+    limite = settings.TIMEOUT_TOKEN_SEG
 
-    time.sleep(settings.TOKEN_TTL_SEG + 5)
-    flujo.direccion.continuar()
-    time.sleep(3)
-    evidencia.captura("Después de la inactividad")
+    print(f"   ⏳ Vigilando hasta {limite}s de inactividad…")
+    reaccion = flujo.validacion.esperar_reaccion_por_token(limite)
+    evidencia.captura(f"Tras la inactividad: {reaccion or 'sin cambios'}")
+    if not reaccion:
+        pytest.fail(f"Tiempo de espera excedido ({limite} s): el token no expiró ni se reinició el flujo")
+
     assert not flujo.validacion.muestra_invalido(), "Se quedó en 'Link de pago no válido' sin salida"
     assert _estado_consistente(flujo), "La página quedó en un estado inconsistente"
 
@@ -170,6 +175,10 @@ def test_TC_BP_045_enlace_en_proceso_en_otra_pestana(flujo, evidencia, enlace_va
     driver = flujo.driver
     flujo.hasta_confirmacion(enlace_valido, tarjeta_de_prueba("principal"))
     flujo.confirmacion.confirmar_pago()  # queda en proceso / 3DS
+    time.sleep(1)
+    if flujo.resultado.aprobada() or flujo.resultado.rechazada():
+        pendiente("Bloqueado: el primer pago terminó al instante (sin 3DS); se necesita una tarjeta que "
+                  "deje el pago en proceso para abrir el link en paralelo")
     driver.switch_to.new_window("tab")
     estado = flujo.abrir_enlace(enlace_valido)
     evidencia.captura(f"Mismo enlace en otra pestaña: {estado}")

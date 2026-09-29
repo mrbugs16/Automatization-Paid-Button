@@ -65,9 +65,12 @@ def flujo(driver, evidencia):
 @pytest.fixture
 def cuenta_predial(request):
     try:
-        return datos.seleccionar_cuenta(request.config.getoption("--cuenta"))
+        cuenta = datos.seleccionar_cuenta(request.config.getoption("--cuenta"))
     except LookupError as e:
         pendiente(str(e))
+    if set(cuenta.get("cuenta", "") + cuenta.get("linea_captura", "")) <= {"0"}:
+        pendiente(f"La cuenta '{cuenta['alias']}' es de ejemplo; pon una cuenta real en data/cuentas_predial.json")
+    return cuenta
 
 
 @pytest.fixture

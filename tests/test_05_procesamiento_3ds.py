@@ -54,6 +54,7 @@ def test_TC_BP_027_cancelar_3ds(flujo, evidencia, enlace_valido, tarjeta_de_prue
 
 
 @caso("TC-BP-028")
+@pytest.mark.lento
 def test_TC_BP_028_timeout_3ds(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
     flujo.hasta_confirmacion(enlace_valido, tarjeta_de_prueba("aprobada_con_3ds"))
     flujo.confirmacion.confirmar_pago()

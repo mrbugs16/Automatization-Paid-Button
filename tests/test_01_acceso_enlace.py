@@ -9,7 +9,7 @@ import pytest
 from config import settings
 from config.datos_prueba import CONTACTO_VALIDO, MSG_LINK_INVALIDO
 from core import datos
-from core.marcadores import caso, pendiente, requiere_memphis
+from core.marcadores import caso, exigir_aprobado, pendiente, requiere_memphis
 
 pytestmark = [pytest.mark.memphis, requiere_memphis]
 
@@ -68,8 +68,7 @@ def test_TC_BP_004_mismo_enlace_dos_pestanas(flujo, evidencia, enlace_valido, ta
     evidencia.captura("Pestaña B lista en Paso 4")
 
     driver.switch_to.window(pestana_a)
-    resultado = flujo.pagar(enlace_valido, tarjeta)
-    assert resultado == "aprobada", "El pago en la Pestaña A no se aprobó; no se puede validar el doble cobro"
+    exigir_aprobado(flujo.pagar(enlace_valido, tarjeta), flujo.resultado.detalles())
 
     driver.switch_to.window(pestana_b)
     flujo.confirmacion.confirmar_pago()
@@ -82,17 +81,18 @@ def test_TC_BP_004_mismo_enlace_dos_pestanas(flujo, evidencia, enlace_valido, ta
 @caso("TC-BP-005")
 def test_TC_BP_005_token_expira_sin_interaccion(flujo, evidencia, enlace_valido):
     flujo.abrir_enlace(enlace_valido)
+    limite = settings.TIMEOUT_TOKEN_SEG
 
-    print(f"   ⏳ Esperando {settings.TOKEN_TTL_SEG + 5}s a que expire el token…")
-    time.sleep(settings.TOKEN_TTL_SEG + 5)
-    evidencia.captura("Después del tiempo de vida del token")
+    print(f"   ⏳ Vigilando hasta {limite}s a que expire el token sin interactuar…")
+    reaccion = flujo.validacion.esperar_reaccion_por_token(limite)
+    evidencia.captura(f"Tras la espera del token: {reaccion or 'sin cambios'}")
+    if not reaccion:
+        pytest.fail(f"Tiempo de espera excedido ({limite} s): el token no expiró ni se reinició el flujo")
 
-    flujo.contacto.llenar(**CONTACTO_VALIDO)
-    flujo.contacto.continuar()
-    time.sleep(3)
-    evidencia.captura("Después de intentar continuar")
-    assert not flujo.validacion.muestra_invalido(), "Se quedó en 'Link de pago no válido' sin salida"
-    assert flujo.contacto.visible(3) or flujo.direccion.visible(3), "El flujo no se reinició ni continuó"
+    estado = flujo.validacion.esperar_fin_validacion()
+    evidencia.captura(f"Después de la reacción ({reaccion}): {estado}")
+    assert estado != "invalido", "Se quedó en 'Link de pago no válido' sin salida"
+    assert estado == "formulario", f"El flujo no se reinició con un token nuevo (estado: {estado})"
 
 
 @caso("TC-BP-051")

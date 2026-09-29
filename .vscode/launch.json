@@ -7,6 +7,30 @@
             "module": "pytest",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
+            "name": "TODO (sin esperas largas)",
+            "args": [
+                "-m",
+                "not lento",
+                "--abrir-reporte"
+            ]
+        },
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "name": "TODO completo (incluye esperas de 15 min)",
+            "args": [
+                "--abrir-reporte"
+            ]
+        },
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
             "name": "Happy path (TC-BP-050)",
             "args": [
                 "-k",

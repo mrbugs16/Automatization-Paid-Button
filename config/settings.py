@@ -73,7 +73,8 @@ CAPTCHA_REINTENTOS = int(os.getenv("CAPTCHA_REINTENTOS", "3"))
 # ==============================================
 # TIEMPOS DE NEGOCIO (CONFIRMAR CON DESARROLLO)
 # ==============================================
-TOKEN_TTL_SEG = int(os.getenv("TOKEN_TTL_SEG", "900"))  # TODO: confirmar vida del token
+# Máximo que TC-BP-005/044 esperan a que el token expire y la página reaccione; si no pasa nada, falla
+TIMEOUT_TOKEN_SEG = int(os.getenv("TIMEOUT_TOKEN_SEG", "120"))
 CONTADOR_REDIRECCION_SEG = int(os.getenv("CONTADOR_REDIRECCION_SEG", "10"))
 TIMEOUT_PROCESAMIENTO = int(os.getenv("TIMEOUT_PROCESAMIENTO", "90"))
 TIMEOUT_3DS_SEG = int(os.getenv("TIMEOUT_3DS_SEG", "300"))  # TODO: confirmar con el banco

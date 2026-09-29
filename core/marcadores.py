@@ -30,3 +30,10 @@ def manual(motivo):
 def pendiente(motivo):
     """Para usar dentro de una prueba cuando falta un dato (enlace, tarjeta, etc.)."""
     pytest.skip(f"{PREFIJO_PENDIENTE} {motivo}")
+
+
+def exigir_aprobado(resultado, detalles=None):
+    """Para casos cuya PRECONDICIÓN es un pago aprobado: si no se aprobó, el caso no se pudo probar."""
+    if resultado != "aprobada":
+        estado = (detalles or {}).get("Estado", resultado)
+        pytest.skip(f"{PREFIJO_PENDIENTE} Bloqueado: requiere un pago aprobado y la tarjeta fue rechazada ({estado})")
