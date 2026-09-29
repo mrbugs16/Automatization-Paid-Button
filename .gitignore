@@ -9,6 +9,9 @@ __pycache__/
 *.py[cod]
 .venv/
 
+# Datos sensibles de prueba (números de tarjeta)
+*.local.json
+
 # ==============================================
 # PLANTILLA BITBUCKET
 # ==============================================

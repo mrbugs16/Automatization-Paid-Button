@@ -20,10 +20,13 @@ COLUMNAS = {
     "Observaciones": "observaciones",
 }
 
+# Estados del reporte -> valores permitidos en la columna 'Estado' del Excel
+ESTADO_EXCEL = {"Error": "Bloqueado", "Manual": "Pendiente"}
+
 COLORES_ESTADO = {
     "Aprobado": "C6EFCE",
     "Fallido": "FFC7CE",
-    "Error": "FFC7CE",
+    "Bloqueado": "F4B084",
     "Pendiente": "FFEB9C",
     "Manual": "DDEBF7",
 }
@@ -55,10 +58,12 @@ def escribir_resultados(resultados, destino, origen=settings.MATRIZ_XLSX):
         r = resultados.get(caso_id)
         if not r:
             continue
-        ws.cell(fila, col_obtenido).value = r["obtenido"]
+        estado = ESTADO_EXCEL.get(r["estado"], r["estado"])
+        prefijo = "[Prueba manual] " if r["estado"] == "Manual" else ""
+        ws.cell(fila, col_obtenido).value = prefijo + r["obtenido"]
         celda = ws.cell(fila, col_estado)
-        celda.value = r["estado"]
-        if r["estado"] in COLORES_ESTADO:
-            color = COLORES_ESTADO[r["estado"]]
+        celda.value = estado
+        if estado in COLORES_ESTADO:
+            color = COLORES_ESTADO[estado]
             celda.fill = PatternFill("solid", start_color=color, end_color=color)
     wb.save(destino)

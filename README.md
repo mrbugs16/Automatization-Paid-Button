@@ -1,7 +1,7 @@
 # [MEMPHIS] Botón de Pago · Automatización QA
 
 Pruebas E2E del Botón de Pago del Gobierno de Puebla con **Python + Appium (Google Chrome) + pytest**.
-Cubre los 49 casos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (capturas + reporte HTML con filtros) en cada ejecución.
+Cubre los 69 casos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (capturas + reporte HTML con filtros) en cada ejecución.
 
 ---
 
@@ -9,8 +9,8 @@ Cubre los 49 casos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (
 
 | Fase | Qué es | En esta suite |
 |---|---|---|
-| 1 · Gobierno de Puebla | Portal `pabel` → Predial → consulta → genera el enlace | `tests/test_00_gobierno_predial.py` (solo precondición, no cuenta en los 49) |
-| 2 · Memphis (nuestro desarrollo) | Enlace de pago → Contacto → Dirección → Tarjeta → 3DS → resultado | `tests/test_01` … `test_09` (TC-BP-001 a TC-BP-049) |
+| 1 · Gobierno de Puebla | Portal `pabel` → Predial → consulta → genera el enlace | `tests/test_00_gobierno_predial.py` (solo precondición, no cuenta en los 69) |
+| 2 · Memphis (nuestro desarrollo) | Enlace → 1 Contacto → 2 Dirección → 3 Tarjeta → 4 Confirmación → 3DS → resultado | `tests/test_00_happy_path.py` y `test_01` … `test_10` (TC-BP-001 a TC-BP-069) |
 | 3 · Redirección al Gobierno | Solo se valida que ocurra | TC-BP-030 / TC-BP-031 |
 
 ---
@@ -20,8 +20,8 @@ Cubre los 49 casos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (
 ```
 config/
   settings.py        URLs, modo de driver, captcha, tiempos (todo sobrescribible por variables de entorno)
-  locators.py        Localizadores. Gobierno = reales. Memphis = provisionales (# TODO)
-  datos_prueba.py    Datos fijos de la matriz (teléfono, correo, CP, etc.)
+  locators.py        Localizadores reales (Gobierno y Memphis). Solo CSS/XPath
+  datos_prueba.py    Datos de prueba y mensajes exactos que muestra la página
 core/
   driver_factory.py  Appium → Chrome escritorio / Chrome Android / Selenium de respaldo
   captcha.py         Estrategia del captcha (manual / fijo / deshabilitado)
@@ -31,11 +31,12 @@ core/
   reporte_html.py    Reporte HTML con filtros
 pages/
   gobierno_predial_page.py
-  memphis_pages.py   Validación, Contacto, Dirección, Tarjeta, Procesamiento/3DS, Resultado + FlujoPago
+  memphis_pages.py   Validación, Contacto, Dirección, Tarjeta, Confirmación, Resultado (+3DS) y FlujoPago
 data/
   cuentas_predial.json   Lista de cuentas de QA (se rotan)
-  tarjetas_prueba.json   Tarjetas sandbox por escenario
-  enlaces_prueba.json    Enlaces de pago (modo manual)
+  tarjetas_prueba.json        Escenarios de tarjeta SIN números (se sube al repo)
+  tarjetas_prueba.local.json  Números de tarjeta reales de QA (NO se sube; ignorado por Git)
+  enlaces_prueba.json         Link de pago vigente y enlaces fijos (vencido, pagado)
 tests/               Un archivo por módulo de la matriz
 evidencias/<fecha_hora>/  reporte.html · resultados.json · matriz_resultados.xlsx · capturas/<TC-ID>/*.png
 ```
@@ -55,12 +56,11 @@ appium driver install chromium
 2. Correr las pruebas:
 
 ```bash
-pytest                                   # toda la suite
-pytest -m gobierno                       # solo el portal del Gobierno (lo único ejecutable hoy)
-pytest -k TC_BP_006                      # un caso
-pytest --cuenta=urbano_02 -m gobierno    # usar una cuenta específica de la lista
-pytest --abrir-reporte                   # abrir el HTML al terminar
-MEMPHIS_DISPONIBLE=true pytest -m memphis  # cuando el botón de pago esté publicado
+python3 -m pytest -k TC_BP_050 --abrir-reporte          # happy path
+python3 -m pytest -m "memphis and not pago"             # todas las validaciones, sin cobrar
+python3 -m pytest -m memphis                            # Memphis completo (incluye pagos)
+python3 -m pytest -m gobierno                           # portal del Gobierno
+python3 -m pytest -k TC_BP_006                          # un caso
 ```
 
 ### Variables de entorno principales
@@ -68,7 +68,9 @@ MEMPHIS_DISPONIBLE=true pytest -m memphis  # cuando el botón de pago esté publ
 | Variable | Valores | Default |
 |---|---|---|
 | `MODO_DRIVER` | `appium_desktop` · `appium_android` · `selenium` | `appium_desktop` |
-| `MEMPHIS_DISPONIBLE` | `true` / `false` | `false` (los 49 casos salen como *Pendiente*) |
+| `MEMPHIS_DISPONIBLE` | `true` / `false` | `true` (con `false` todo Memphis sale *Pendiente*) |
+| `ENLACE_PAGO` | link de pago a usar | `enlaces_prueba.json` → `vigente` |
+| `TRESDS_MODO` | `manual` · `auto` | `manual` (espera a que captures el NIP/código del banco) |
 | `ORIGEN_ENLACE` | `manual` · `api` · `gobierno` | `manual` |
 | `CAPTCHA_MODO` | `manual` · `fijo` · `deshabilitado` | `manual` |
 | `CAPTCHA_VALOR` | valor fijo si el Gobierno lo habilita en QA | — |
@@ -76,6 +78,16 @@ MEMPHIS_DISPONIBLE=true pytest -m memphis  # cuando el botón de pago esté publ
 | `TOKEN_TTL_SEG` | vida del token (TC-BP-005 / 044) | `900` (confirmar con desarrollo) |
 
 ---
+
+## Link de pago y pruebas que cobran
+
+- Todas las pruebas usan el link `vigente` de `data/enlaces_prueba.json`. Se puede reutilizar mientras el pago **no se apruebe**.
+- Las pruebas marcadas `pago` confirman un pago real en el ambiente. Cuando uno se aprueba, el link pasa a `pagado` y las siguientes pruebas quedan *Pendiente* pidiendo un link nuevo: pega uno nuevo en `vigente`.
+- Para validar formularios sin cobrar nada: `python3 -m pytest -m "memphis and not pago"`.
+
+## Tarjetas
+
+`data/tarjetas_prueba.json` define los escenarios (`principal`, `aprobada_sin_3ds`, `aprobada_con_3ds`, `declinada`, `nip_incorrecto`) **sin números**. Los números van en `data/tarjetas_prueba.local.json`, con la misma estructura, y ese archivo nunca se sube al repo. Si un escenario no tiene número, sus pruebas salen *Pendiente*.
 
 ## Cuentas prediales
 
@@ -100,10 +112,9 @@ Estados: **Aprobado** · **Fallido** (falló una validación) · **Error** (fall
 
 ---
 
-## Pendientes para cuando llegue la página de Memphis
+## Pendientes
 
-- [ ] Reemplazar los locators `# TODO` de `config/locators.py` (pedir `data-testid` a desarrollo)
-- [ ] Tarjetas sandbox en `data/tarjetas_prueba.json` (aprobada con y sin 3DS, declinada, NIP incorrecto)
+- [ ] Tarjetas sandbox en `data/tarjetas_prueba.local.json` (aprobada con y sin 3DS, declinada, NIP incorrecto)
 - [ ] Algoritmo de `mp_signature` para `ORIGEN_ENLACE=api` (`core/enlace_pago.py::firmar`)
 - [ ] Tiempo de vida del token y del 3DS (`TOKEN_TTL_SEG`, `TIMEOUT_3DS_SEG`)
 - [ ] Botón del portal del Gobierno que redirige a Memphis (`GobiernoLoc.BTN_PAGAR_EN_LINEA`)

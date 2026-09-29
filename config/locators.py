@@ -3,8 +3,8 @@ Localizadores (By, valor) de todas las pantallas.
 Solo CSS o XPath: el driver Chromium de Appium no acepta By.ID ni By.NAME.
 
 - GobiernoLoc: tomados del portal real (srvtestwl.pueblacapital.gob.mx/pabel/iniciopredial).
-- Memphis*: PROVISIONALES. El botón de pago aún no está publicado; en cuanto exista
-  hay que reemplazarlos por los reales (idealmente pedir a desarrollo atributos data-testid).
+- Memphis*: tomados del botón de pago real (pagospueblacapital-dev.memphis.mx/payout).
+  La app es React: los ids de los campos y las clases salen del código de la página.
 """
 from selenium.webdriver.common.by import By
 
@@ -30,83 +30,96 @@ class GobiernoLoc:
 
 
 # ==============================================
-# MEMPHIS - VALIDACIÓN DEL ENLACE
+# MEMPHIS - ENCABEZADO Y STEPPER (visibles en los 4 pasos)
+# ==============================================
+class EncabezadoLoc:
+    IMPORTE = (By.CSS_SELECTOR, ".stepper__detail__header .text-value")      # "$2280.45"
+    CONCEPTO = (By.CSS_SELECTOR, ".stepper__detail__header .text-concept")   # "Concepto de pago: ..."
+    FECHA = (By.CSS_SELECTOR, ".stepper__detail__header .text-date")
+    FILAS = (By.CSS_SELECTOR, ".stepper__detail__row")                       # Solicitante / Descripción / Referencia
+    PASO_ACTIVO = (By.CSS_SELECTOR, "button.number-content--active")          # texto = número de paso
+
+
+def boton_paso(numero):
+    """Botón circular del stepper (1 Contacto, 2 Dirección, 3 Tarjeta, 4 Pago)."""
+    return (By.XPATH, f"//button[contains(@class,'number-content') and normalize-space()='{numero}']")
+
+
+# ==============================================
+# MEMPHIS - VALIDACIÓN DEL ENLACE / ESTADOS DE PANTALLA
 # ==============================================
 class ValidacionLoc:
-    PANTALLA_VALIDANDO = (By.CSS_SELECTOR, "[data-testid='validando-enlace']")        # TODO
-    MENSAJE_ERROR = (By.CSS_SELECTOR, "[data-testid='error-enlace']")                 # TODO
-    MENSAJE_YA_PAGADO = (By.CSS_SELECTOR, "[data-testid='transaccion-procesada']")    # TODO
-    RESUMEN_IMPORTE = (By.CSS_SELECTOR, "[data-testid='resumen-importe']")            # TODO
-    RESUMEN_CONCEPTO = (By.CSS_SELECTOR, "[data-testid='resumen-concepto']")          # TODO
-    RESUMEN_REFERENCIA = (By.CSS_SELECTOR, "[data-testid='resumen-referencia']")      # TODO
+    SPINNER = (By.CSS_SELECTOR, ".status__spinner-container")                 # "Validando link de pago"
+    ENCABEZADO_ESTADO = (By.CSS_SELECTOR, ".status__header .status-heading")  # "Link de pago no válido"
+    MENSAJE_ESTADO = (By.CSS_SELECTOR, ".status__header .status-message")
+
+
+# ==============================================
+# MEMPHIS - CAMPOS Y BOTONES COMUNES
+# ==============================================
+class FormularioLoc:
+    BTN_CONTINUAR = (By.XPATH, "//button[normalize-space()='Continuar']")
+    BTN_REGRESAR = (By.XPATH, "//button[normalize-space()='Regresar']")
+    ERRORES = (By.CSS_SELECTOR, ".input__error, .select__error")
+
+
+def error_de(id_campo):
+    """Mensaje de error que la app pinta dentro del recuadro del campo (input o select)."""
+    return (By.XPATH,
+            f"//div[contains(@class,'input--error') or contains(@class,'select--error')]"
+            f"[.//*[@id='{id_campo}']]//span[contains(@class,'__error')]")
 
 
 # ==============================================
 # MEMPHIS - PASO 1 CONTACTO
 # ==============================================
 class ContactoLoc:
-    PASO = (By.CSS_SELECTOR, "[data-testid='paso-contacto']")                         # TODO
-    INPUT_TELEFONO = (By.CSS_SELECTOR, "input[name='telefono']")                      # TODO
-    INPUT_CORREO = (By.CSS_SELECTOR, "input[name='correo']")                          # TODO
-    BTN_CONTINUAR = (By.XPATH, "//button[normalize-space()='Continuar']")             # TODO
-    ERROR_TELEFONO = (By.CSS_SELECTOR, "[data-testid='error-telefono']")              # TODO
-    ERROR_CORREO = (By.CSS_SELECTOR, "[data-testid='error-correo']")                  # TODO
-    TAB_CONTACTO = (By.CSS_SELECTOR, "[data-testid='stepper-contacto']")              # TODO
+    INPUT_TELEFONO = (By.CSS_SELECTOR, "#mobile")   # opcional, 10 a 13 dígitos
+    INPUT_CORREO = (By.CSS_SELECTOR, "#email")      # obligatorio
 
 
 # ==============================================
 # MEMPHIS - PASO 2 DIRECCIÓN
 # ==============================================
 class DireccionLoc:
-    PASO = (By.CSS_SELECTOR, "[data-testid='paso-direccion']")                        # TODO
-    INPUT_CP = (By.CSS_SELECTOR, "input[name='codigoPostal']")                        # TODO
-    INPUT_CALLE = (By.CSS_SELECTOR, "input[name='calle']")                            # TODO
-    INPUT_NUMERO = (By.CSS_SELECTOR, "input[name='numero']")                          # TODO
-    INPUT_ESTADO = (By.CSS_SELECTOR, "[name='estado']")                               # TODO
-    BTN_CONTINUAR = (By.XPATH, "//button[normalize-space()='Continuar']")             # TODO
-    BTN_REGRESAR = (By.XPATH, "//button[normalize-space()='Regresar']")               # TODO
-    ERRORES = (By.CSS_SELECTOR, "[data-testid^='error-']")                            # TODO
-    ERROR_CP = (By.CSS_SELECTOR, "[data-testid='error-cp']")                          # TODO
+    INPUT_CALLE = (By.CSS_SELECTOR, "#street")      # solo letras, números y espacios
+    INPUT_CP = (By.CSS_SELECTOR, "#zip-code")       # exactamente 5 dígitos
+    INPUT_CIUDAD = (By.CSS_SELECTOR, "#city")       # solo letras, números y espacios
+    SELECT_PAIS = (By.CSS_SELECTOR, "#country")     # value = código alfa-3 (MEX)
+    SELECT_ESTADO = (By.CSS_SELECTOR, "#state")     # value = código alfa-3 (PUE)
 
 
 # ==============================================
-# MEMPHIS - PASO 3 TARJETA
+# MEMPHIS - PASO 3 DATOS DE TARJETA
 # ==============================================
 class TarjetaLoc:
-    PASO = (By.CSS_SELECTOR, "[data-testid='paso-tarjeta']")                          # TODO
-    IFRAME = None  # TODO: si los campos de tarjeta viven en un iframe del procesador, poner su locator
-    INPUT_NUMERO = (By.CSS_SELECTOR, "input[name='numeroTarjeta']")                   # TODO
-    INPUT_NOMBRE = (By.CSS_SELECTOR, "input[name='nombreTitular']")                   # TODO
-    INPUT_VIGENCIA = (By.CSS_SELECTOR, "input[name='vigencia']")                      # TODO
-    INPUT_CVV = (By.CSS_SELECTOR, "input[name='cvv']")                                # TODO
-    BTN_PAGAR = (By.XPATH, "//button[normalize-space()='Pagar']")                     # TODO
-    ERRORES = (By.CSS_SELECTOR, "[data-testid^='error-']")                            # TODO
-    ERROR_NUMERO = (By.CSS_SELECTOR, "[data-testid='error-numero']")                  # TODO
-    ERROR_VIGENCIA = (By.CSS_SELECTOR, "[data-testid='error-vigencia']")              # TODO
-    ERROR_CVV = (By.CSS_SELECTOR, "[data-testid='error-cvv']")                        # TODO
+    INPUT_NOMBRE = (By.CSS_SELECTOR, "#name")
+    INPUT_APELLIDO = (By.CSS_SELECTOR, "#lastName")
+    INPUT_NUMERO = (By.CSS_SELECTOR, "#card")           # máscara 0000 0000 0000 0000
+    INPUT_VIGENCIA = (By.CSS_SELECTOR, "#expiration")   # máscara 00/00
+    INPUT_CVV = (By.CSS_SELECTOR, "#cvv")               # type=password, máx. 3
 
 
 # ==============================================
-# MEMPHIS - PROCESAMIENTO / 3D SECURE
+# MEMPHIS - PASO 4 CONFIRMACIÓN ("Revisa tu información antes de pagar")
 # ==============================================
-class ProcesamientoLoc:
-    PANTALLA_PROCESANDO = (By.XPATH, "//*[contains(., 'Procesando transacci')]")      # TODO
-    IFRAME_3DS = (By.CSS_SELECTOR, "iframe[name*='3ds'], iframe[id*='3ds']")          # TODO
-    INPUT_CODIGO_3DS = (By.CSS_SELECTOR, "input[type='password'], input[name*='otp']")  # TODO
-    BTN_ENVIAR_3DS = (By.CSS_SELECTOR, "button[type='submit'], input[type='submit']")  # TODO
-    BTN_CANCELAR_3DS = (By.XPATH, "//*[self::a or self::button][contains(., 'Cancel')]")  # TODO
-    POPUP_ERROR = (By.CSS_SELECTOR, "[role='dialog'], .modal.show")                   # TODO
+class ConfirmacionLoc:
+    CONTENEDOR = (By.CSS_SELECTOR, ".payment-summary-container")
+    FILAS = (By.CSS_SELECTOR, ".payment-summary__row")    # <span>etiqueta</span><strong>valor</strong>
 
 
 # ==============================================
-# MEMPHIS - RESULTADO
+# MEMPHIS - RESULTADO (procesando / aprobada / rechazada)
 # ==============================================
 class ResultadoLoc:
-    APROBADA = (By.XPATH, "//*[contains(., 'Transacci') and contains(., 'aprobada')]")    # TODO
-    RECHAZADA = (By.XPATH, "//*[contains(., 'Transacci') and contains(., 'rechazada')]")  # TODO
-    REFERENCIA = (By.CSS_SELECTOR, "[data-testid='resultado-referencia']")            # TODO
-    FOLIO = (By.CSS_SELECTOR, "[data-testid='resultado-folio']")                      # TODO
-    MENSAJE = (By.CSS_SELECTOR, "[data-testid='resultado-mensaje']")                  # TODO
-    CONTADOR = (By.CSS_SELECTOR, "[data-testid='contador-redireccion']")              # TODO
-    BTN_CONTINUAR = (By.XPATH, "//button[normalize-space()='Continuar']")             # TODO
-    BTN_REINTENTAR = (By.XPATH, "//button[normalize-space()='Reintentar']")           # TODO
+    TITULO = (By.CSS_SELECTOR, ".status__detail-heading .status-heading")    # "Transacción aprobada/rechazada"
+    SUBTITULO = (By.CSS_SELECTOR, ".status__detail-heading .status-message")
+    FILAS = (By.CSS_SELECTOR, ".status__detail-row")                         # Estado, Código de respuesta, ...
+    ETIQUETA = (By.CSS_SELECTOR, ".status-detail-label")
+    VALOR = (By.CSS_SELECTOR, ".status-detail-value")
+    IMAGEN = (By.CSS_SELECTOR, "img.status-image")                           # alt = success | error | validating
+    CONTADOR = (By.CSS_SELECTOR, ".counter__text-dinamyc")                   # "10 segundos"
+    BTN_CONTINUAR = (By.XPATH, "//button[starts-with(normalize-space(),'Continuar en')]")
+    BTN_REINTENTAR = (By.XPATH, "//button[normalize-space()='Reintentar']")
+    TOAST_ERROR = (By.CSS_SELECTOR, ".custom-toast__container--error")
+    TOAST = (By.CSS_SELECTOR, "[class*='custom-toast__container']")

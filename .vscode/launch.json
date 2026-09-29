@@ -2,32 +2,67 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Gobierno (Predial)",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": ["-m", "gobierno", "--abrir-reporte", "-s"],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Memphis (49 casos)",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "pytest",
-            "args": ["-m", "memphis", "--abrir-reporte", "-s"],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
-            "env": { "MEMPHIS_DISPONIBLE": "false" }
+            "name": "Happy path (TC-BP-050)",
+            "args": [
+                "-k",
+                "TC_BP_050",
+                "--abrir-reporte"
+            ]
         },
         {
-            "name": "Archivo de prueba actual",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": ["${file}", "-s"],
             "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "name": "Validaciones Memphis (sin pago)",
+            "args": [
+                "-m",
+                "memphis and not pago",
+                "--abrir-reporte"
+            ]
+        },
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "name": "Memphis completo (incluye pagos)",
+            "args": [
+                "-m",
+                "memphis",
+                "--abrir-reporte"
+            ]
+        },
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "name": "Gobierno (Predial)",
+            "args": [
+                "-m",
+                "gobierno",
+                "--abrir-reporte"
+            ]
+        },
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "name": "Archivo de prueba actual",
+            "args": [
+                "${file}"
+            ]
         }
     ]
 }

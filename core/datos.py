@@ -52,9 +52,14 @@ def marcar_cuenta(alias, estado, notas=None):
 # TARJETAS DE PRUEBA
 # ==============================================
 def tarjeta(nombre):
-    t = _leer(settings.TARJETAS_JSON)["tarjetas"][nombre]
-    if not t["numero"]:
-        raise LookupError(f"Tarjeta de prueba '{nombre}' sin número en {settings.TARJETAS_JSON.name}")
+    """Combina tarjetas_prueba.json con tarjetas_prueba.local.json (el local tiene los números)."""
+    tarjetas = _leer(settings.TARJETAS_JSON)["tarjetas"]
+    if settings.TARJETAS_LOCAL_JSON.exists():
+        for clave, datos_local in _leer(settings.TARJETAS_LOCAL_JSON)["tarjetas"].items():
+            tarjetas[clave] = {**tarjetas.get(clave, {}), **datos_local}
+    t = tarjetas.get(nombre)
+    if not t or not t.get("numero"):
+        raise LookupError(f"Tarjeta de prueba '{nombre}' sin número en {settings.TARJETAS_LOCAL_JSON.name}")
     return t
 
 
@@ -65,11 +70,13 @@ def enlace_fijo(clave):
     return _leer(settings.ENLACES_JSON).get(clave) or None
 
 
-def consumir_enlace_valido():
+def enlace_vigente():
+    return settings.ENLACE_PAGO or enlace_fijo("vigente")
+
+
+def marcar_enlace_pagado(url):
+    """Tras un pago aprobado el link ya no sirve: pasa 'vigente' a 'pagado' (útil para TC-BP-003)."""
     datos = _leer(settings.ENLACES_JSON)
-    if not datos["validos"]:
-        return None
-    url = datos["validos"].pop(0)
-    datos["usados"].append(url)
-    _guardar(settings.ENLACES_JSON, datos)
-    return url
+    if datos.get("vigente") == url:
+        datos["pagado"], datos["vigente"] = url, ""
+        _guardar(settings.ENLACES_JSON, datos)

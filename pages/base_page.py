@@ -1,5 +1,9 @@
 """Acciones comunes sobre cualquier pantalla (esperas, clics, escritura)."""
+import platform
+
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
@@ -53,21 +57,44 @@ class BasePage:
         self.esperar_clickeable(loc).click()
 
     def escribir(self, loc, texto, limpiar=True):
+        """Escribe tecla por tecla. Limpia con Cmd/Ctrl+A + Borrar para que React y las máscaras se enteren."""
         campo = self.esperar_visible(loc)
-        if limpiar:
-            campo.clear()
+        if limpiar and self.propiedad(campo, "value"):
+            modificador = Keys.COMMAND if platform.system() == "Darwin" else Keys.CONTROL
+            campo.send_keys(modificador, "a")
+            campo.send_keys(Keys.BACKSPACE)
         if texto:
             campo.send_keys(texto)
         return campo
 
+    def salir_del_campo(self, loc):
+        """Quita el foco (dispara las validaciones 'onTouched' de la página)."""
+        self.esperar_visible(loc).send_keys(Keys.TAB)
+
     def seleccionar(self, loc, valor):
         Select(self.esperar_visible(loc)).select_by_value(valor)
+
+    def esperar_opcion(self, loc, valor, timeout=None):
+        """Los catálogos (países/estados) llegan por API: espera a que exista la opción."""
+        def _existe(d):
+            selects = d.find_elements(*loc)
+            return bool(selects) and any(o.get_attribute("value") == valor
+                                         for o in selects[0].find_elements(By.TAG_NAME, "option"))
+
+        return self._wait(timeout).until(_existe, message=f"La opción '{valor}' no apareció en {loc}")
+
+    def opcion_seleccionada(self, loc):
+        return Select(self.esperar_visible(loc)).first_selected_option.get_attribute("value")
 
     def texto(self, loc, timeout=None):
         return self.esperar_visible(loc, timeout).text.strip()
 
+    def propiedad(self, elemento, nombre):
+        """Lee una propiedad del DOM con JS: el driver Chromium de Appium regresa None en get_attribute."""
+        return self.driver.execute_script("return arguments[0][arguments[1]];", elemento, nombre)
+
     def valor(self, loc):
-        return self.esperar_visible(loc).get_attribute("value") or ""
+        return self.propiedad(self.esperar_visible(loc), "value") or ""
 
     def textos_visibles(self, loc):
         return [e.text.strip() for e in self.driver.find_elements(*loc) if e.is_displayed() and e.text.strip()]

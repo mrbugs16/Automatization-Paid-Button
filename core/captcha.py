@@ -45,7 +45,7 @@ def resolver_captcha(page, evidencia=None):
 
     def _capturado(_):
         try:
-            return len(campo.get_attribute("value") or "") >= longitud
+            return len(page.propiedad(campo, "value") or "") >= longitud
         except StaleElementReferenceException:
             return True  # el tester envió el formulario manualmente
 

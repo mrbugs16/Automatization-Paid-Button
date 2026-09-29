@@ -58,8 +58,8 @@ def driver(evidencia):
 
 
 @pytest.fixture
-def flujo(driver):
-    return FlujoPago(driver)
+def flujo(driver, evidencia):
+    return FlujoPago(driver, evidencia)
 
 
 @pytest.fixture
@@ -88,7 +88,7 @@ def enlace_valido(request, driver, evidencia):
         cuenta = request.getfixturevalue("cuenta_predial")
     url = obtener_enlace_valido(driver, cuenta, evidencia)
     if not url:
-        pendiente(f"Sin enlace de pago válido (ORIGEN_ENLACE={settings.ORIGEN_ENLACE}); agrega uno en data/enlaces_prueba.json")
+        pendiente(f"Sin enlace de pago válido (ORIGEN_ENLACE={settings.ORIGEN_ENLACE}); pon uno en data/enlaces_prueba.json -> vigente")
     return url
 
 

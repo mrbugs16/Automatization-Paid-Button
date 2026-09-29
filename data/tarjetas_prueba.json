@@ -1,9 +1,15 @@
 {
-  "_instrucciones": "Tarjetas de PRUEBA del procesador (sandbox). Solicitar a desarrollo Memphis las tarjetas reales de sandbox para cada escenario. Nunca usar tarjetas reales.",
+  "_instrucciones": [
+    "Tarjetas de PRUEBA por escenario. NO pongas números de tarjeta aquí: este archivo se sube al repo.",
+    "Los números van en data/tarjetas_prueba.local.json (ignorado por Git), con la misma estructura.",
+    "Si un escenario no tiene número, las pruebas que lo usan salen como 'Pendiente'.",
+    "vigencia va sin diagonal (MMAA): la página pone la diagonal sola."
+  ],
   "tarjetas": {
-    "aprobada_sin_3ds": {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": false, "codigo_3ds": ""},
-    "aprobada_con_3ds": {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": true, "codigo_3ds": ""},
-    "declinada":        {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": false, "codigo_3ds": ""},
-    "nip_incorrecto":   {"numero": "", "nombre": "JUAN PEREZ", "vigencia": "12/30", "cvv": "123", "requiere_3ds": true, "codigo_3ds": "000000"}
+    "principal":        {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": true},
+    "aprobada_sin_3ds": {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": false},
+    "aprobada_con_3ds": {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": true},
+    "declinada":        {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": false},
+    "nip_incorrecto":   {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": true}
   }
 }

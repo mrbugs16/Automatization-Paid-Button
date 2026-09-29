@@ -1,6 +1,6 @@
 """
 Obtención del enlace de pago de Memphis según ORIGEN_ENLACE (manual | api | gobierno).
-Cada enlace es de un solo uso, por eso cada prueba pide uno nuevo.
+El enlace se puede reutilizar mientras el pago no se apruebe.
 """
 import time
 
@@ -52,7 +52,7 @@ def obtener_enlace_valido(driver=None, cuenta=None, evidencia=None):
     """Regresa la URL de un enlace de pago sin usar, o None si no hay de dónde sacarlo."""
     origen = settings.ORIGEN_ENLACE
     if origen == "manual":
-        url = datos.consumir_enlace_valido()
+        url = datos.enlace_vigente()
     elif origen == "api":
         url = generar_por_api()
     elif origen == "gobierno":

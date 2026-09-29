@@ -2,7 +2,7 @@
 MÓDULO 09 - COMPATIBILIDAD Y ACCESIBILIDAD
 · TC-BP-047 a TC-BP-049
 
-TC-BP-047/048 se automatizan cambiando MODO_DRIVER (appium_desktop / appium_android).
+TC-BP-048 se automatiza con MODO_DRIVER=appium_android (Chrome en celular Android).
 Edge y Safari requieren otros drivers de Appium; mientras tanto quedan como manuales.
 """
 import pytest
@@ -20,12 +20,13 @@ def test_TC_BP_047_navegadores():
 
 
 @caso("TC-BP-048")
+@pytest.mark.pago
 @pytest.mark.skipif(settings.MODO_DRIVER != "appium_android",
                     reason="MANUAL: ejecutar con MODO_DRIVER=appium_android (Chrome en celular Android)")
 def test_TC_BP_048_celular(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    resultado = flujo.pagar(enlace_valido, tarjeta_de_prueba("aprobada_sin_3ds"))
+    resultado = flujo.pagar(enlace_valido, tarjeta_de_prueba("principal"))
     evidencia.captura(f"Flujo completo en celular: {resultado}")
-    assert resultado == "aprobada"
+    assert resultado == "aprobada", f"Detalle: {flujo.resultado.detalles()}"
 
 
 @caso("TC-BP-049")

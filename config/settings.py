@@ -33,6 +33,7 @@ TIMEOUT = int(os.getenv("TIMEOUT", "20"))
 URL_GOBIERNO = os.getenv("URL_GOBIERNO", "https://srvtestwl.pueblacapital.gob.mx:7016/pabel/")
 DOMINIO_GOBIERNO = "pueblacapital.gob.mx"
 
+DOMINIO_MEMPHIS = "pagospueblacapital-dev.memphis.mx"
 URL_MEMPHIS_PAYOUT = os.getenv(
     "URL_MEMPHIS_PAYOUT", "https://pagospueblacapital-dev.memphis.mx/payout?token={token}"
 )
@@ -40,15 +41,23 @@ URL_API_TRANSMISION = os.getenv(
     "URL_API_TRANSMISION", "https://centra.memphis.mx/api-dev/transmission-sequence"
 )
 
-# Mientras el botón de pago no esté disponible, todas las pruebas de Memphis
-# se reportan como "Pendiente". Cambiar a true cuando la integración esté lista.
-MEMPHIS_DISPONIBLE = _bool("MEMPHIS_DISPONIBLE")
+# Con false, todas las pruebas de Memphis se reportan como "Pendiente" (útil si el ambiente cae).
+MEMPHIS_DISPONIBLE = _bool("MEMPHIS_DISPONIBLE", "true")
 
 # De dónde sale el enlace de pago para cada prueba de Memphis:
-# manual   : se toma de data/enlaces_prueba.json (se consumen uno por prueba)
+# manual   : ENLACE_PAGO o data/enlaces_prueba.json -> "vigente" (se reutiliza mientras no se pague)
 # api      : se genera con POST a transmission-sequence (requiere firma HMAC)
 # gobierno : se recorre el portal del Gobierno (Predial -> captcha -> pagar)
 ORIGEN_ENLACE = os.getenv("ORIGEN_ENLACE", "manual")
+ENLACE_PAGO = os.getenv("ENLACE_PAGO", "")
+
+# ==============================================
+# 3D SECURE
+# ==============================================
+# El banco autentica con una redirección de página completa (sale de Memphis y regresa).
+# manual : si el banco pide código/NIP, el script espera a que el tester lo capture
+# auto   : solo espera el regreso (para tarjetas sandbox que no piden interacción)
+TRESDS_MODO = os.getenv("TRESDS_MODO", "manual")
 
 # ==============================================
 # CAPTCHA (PORTAL DEL GOBIERNO)
@@ -67,7 +76,7 @@ CAPTCHA_REINTENTOS = int(os.getenv("CAPTCHA_REINTENTOS", "3"))
 TOKEN_TTL_SEG = int(os.getenv("TOKEN_TTL_SEG", "900"))  # TODO: confirmar vida del token
 CONTADOR_REDIRECCION_SEG = int(os.getenv("CONTADOR_REDIRECCION_SEG", "10"))
 TIMEOUT_PROCESAMIENTO = int(os.getenv("TIMEOUT_PROCESAMIENTO", "90"))
-TIMEOUT_3DS_SEG = int(os.getenv("TIMEOUT_3DS_SEG", "600"))  # TODO: confirmar con el banco
+TIMEOUT_3DS_SEG = int(os.getenv("TIMEOUT_3DS_SEG", "300"))  # TODO: confirmar con el banco
 
 # ==============================================
 # DATOS Y EVIDENCIA
@@ -77,5 +86,6 @@ MATRIZ_XLSX = DIR_DATOS / "Matriz Pruebas Boton Pago.xlsx"
 HOJA_MATRIZ = "Matriz de Pruebas"
 CUENTAS_JSON = DIR_DATOS / "cuentas_predial.json"
 TARJETAS_JSON = DIR_DATOS / "tarjetas_prueba.json"
+TARJETAS_LOCAL_JSON = DIR_DATOS / "tarjetas_prueba.local.json"  # no se sube al repo
 ENLACES_JSON = DIR_DATOS / "enlaces_prueba.json"
 DIR_EVIDENCIAS = RAIZ / "evidencias"
