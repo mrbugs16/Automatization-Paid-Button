@@ -159,14 +159,14 @@ def test_TC_BP_044_inactividad_con_datos(flujo, evidencia, enlace_valido):
     evidencia.captura("Paso 2 lleno, inicia inactividad")
     limite = settings.TIMEOUT_TOKEN_SEG
 
-    print(f"   ⏳ Vigilando hasta {limite}s de inactividad…")
+    print(f"   ⏳ Vigilando {limite}s de inactividad (el token no debe expirar)…")
     reaccion = flujo.validacion.esperar_reaccion_por_token(limite)
-    evidencia.captura(f"Tras la inactividad: {reaccion or 'sin cambios'}")
-    if not reaccion:
-        pytest.fail(f"Tiempo de espera excedido ({limite} s): el token no expiró ni se reinició el flujo")
+    evidencia.captura(f"Tras {limite}s de inactividad: {reaccion or 'sin cambios'}")
+    assert not reaccion, f"El token expiró o el flujo se reinició por inactividad ({reaccion})"
 
-    assert not flujo.validacion.muestra_invalido(), "Se quedó en 'Link de pago no válido' sin salida"
-    assert _estado_consistente(flujo), "La página quedó en un estado inconsistente"
+    flujo.direccion.continuar()
+    evidencia.captura("Después de continuar")
+    assert flujo.tarjeta.visible(), f"No se pudo continuar sin perder lo capturado: {flujo.direccion.errores()}"
 
 
 @caso("TC-BP-045")

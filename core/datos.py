@@ -71,12 +71,26 @@ def enlace_fijo(clave):
 
 
 def enlace_vigente():
-    return settings.ENLACE_PAGO or enlace_fijo("vigente")
+    """Primer link sin pagar de la lista (o ENLACE_PAGO si se pasó por variable)."""
+    return settings.ENLACE_PAGO or next(iter(_leer(settings.ENLACES_JSON).get("vigentes", [])), None)
+
+
+def enlace_pagado():
+    return next(reversed(_leer(settings.ENLACES_JSON).get("pagados", [])), None)
 
 
 def marcar_enlace_pagado(url):
-    """Tras un pago aprobado el link ya no sirve: pasa 'vigente' a 'pagado' (útil para TC-BP-003)."""
+    """Tras un pago aprobado el link ya no sirve: pasa de 'vigentes' a 'pagados' y se usa el siguiente."""
     datos = _leer(settings.ENLACES_JSON)
-    if datos.get("vigente") == url:
-        datos["pagado"], datos["vigente"] = url, ""
+    if url in datos.get("vigentes", []):
+        datos["vigentes"].remove(url)
+        datos.setdefault("pagados", []).append(url)
         _guardar(settings.ENLACES_JSON, datos)
+        restantes = len(datos["vigentes"])
+        print(f"   🔗 Link pagado; quedan {restantes} link(s) vigente(s) en {settings.ENLACES_JSON.name}")
+
+
+def tarjetas_3ds(tipo=None):
+    """Catálogo de tarjetas de prueba 3DS (opcionalmente filtrado: 'Not challenge', 'Challenge', 'Attempt', 'Not authenticated')."""
+    catalogo = _leer(settings.TARJETAS_JSON).get("catalogo_3ds", [])
+    return [t for t in catalogo if tipo is None or t["tipo_3ds"] == tipo]

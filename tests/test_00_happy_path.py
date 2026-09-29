@@ -9,7 +9,9 @@ import pytest
 
 from config.datos_prueba import CONTACTO_VALIDO, DIRECCION_VALIDA
 from core import datos
+from config import settings
 from core.marcadores import caso, requiere_memphis
+from pages.gobierno_comprobante_page import ComprobanteGobiernoPage
 
 pytestmark = [pytest.mark.memphis, requiere_memphis]
 
@@ -60,3 +62,14 @@ def test_TC_BP_050_happy_path(flujo, evidencia, enlace_valido, tarjeta_de_prueba
         f"{flujo.resultado.titulo()} - Estado: {detalles.get('Estado', '-')}, "
         f"código {detalles.get('Código de respuesta', '-')}")
     assert detalles.get("Código de respuesta") == "00", f"Código de respuesta inesperado: {detalles}"
+
+    # Regreso al Gobierno: Comprobante de pago con la misma autorización
+    flujo.resultado.esperar_redireccion_gobierno(settings.CONTADOR_REDIRECCION_SEG + 15)
+    comprobante = ComprobanteGobiernoPage(flujo.driver)
+    assert comprobante.visible(), f"No se mostró el 'COMPROBANTE DE PAGO' (URL: {flujo.driver.current_url})"
+    evidencia.captura("Comprobante de pago del Gobierno")
+    datos_gob = comprobante.datos()
+    evidencia.nota(f"Comprobante: {datos_gob}")
+    assert datos_gob["autorizacion"] == detalles.get("Autorización"), \
+        f"Autorización distinta: Memphis '{detalles.get('Autorización')}' vs Gobierno '{datos_gob['autorizacion']}'"
+    evidencia.nota("⚠ (Manual) Verificar el pago en Citeling")

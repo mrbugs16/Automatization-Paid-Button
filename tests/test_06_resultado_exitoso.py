@@ -8,6 +8,7 @@ import pytest
 
 from config import settings
 from core.marcadores import caso, exigir_aprobado, requiere_memphis
+from pages.gobierno_comprobante_page import ComprobanteGobiernoPage
 
 pytestmark = [pytest.mark.memphis, requiere_memphis, pytest.mark.pago]
 DETALLES_ESPERADOS = ("Estado", "Código de respuesta", "Referencia", "Autorización", "Identificador")
@@ -32,6 +33,7 @@ def test_TC_BP_030_redireccion_automatica(flujo, evidencia, enlace_valido, tarje
     redirigio = flujo.resultado.esperar_redireccion_gobierno(settings.CONTADOR_REDIRECCION_SEG + 15)
     evidencia.captura("Después del contador")
     assert redirigio, f"No se redirigió a {settings.DOMINIO_GOBIERNO}; URL actual: {flujo.driver.current_url}"
+    assert ComprobanteGobiernoPage(flujo.driver).visible(), "La redirección no mostró el 'COMPROBANTE DE PAGO'"
 
 
 @caso("TC-BP-031")
@@ -42,3 +44,4 @@ def test_TC_BP_031_continuar_antes_del_contador(flujo, evidencia, enlace_valido,
     redirigio = flujo.resultado.esperar_redireccion_gobierno(5)
     evidencia.captura("Después de clic en 'Continuar en N s.'")
     assert redirigio, "No se redirigió de inmediato al dar clic en Continuar"
+    assert ComprobanteGobiernoPage(flujo.driver).visible(), "La redirección no mostró el 'COMPROBANTE DE PAGO'"

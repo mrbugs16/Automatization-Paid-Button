@@ -18,6 +18,7 @@ COLUMNAS = {
     "Resultado Obtenido": "obtenido",
     "Estado": "estado",
     "Observaciones": "observaciones",
+    "Ejecucion": "ejecucion",
 }
 
 # Estados del reporte -> valores permitidos en la columna 'Estado' del Excel

@@ -1,7 +1,7 @@
 # [MEMPHIS] Botón de Pago · Automatización QA
 
 Pruebas E2E del Botón de Pago del Gobierno de Puebla con **Python + Appium (Google Chrome) + pytest**.
-Cubre los 69 casos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (capturas + reporte HTML con filtros) en cada ejecución.
+Cubre los 101 casos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (capturas + reporte HTML con filtros) en cada ejecución.
 
 ---
 
@@ -30,7 +30,8 @@ core/
   matriz.py          Lee la matriz Excel y escribe una copia con resultados
   reporte_html.py    Reporte HTML con filtros
 pages/
-  gobierno_predial_page.py
+  gobierno_predial_page.py      Portal del Gobierno: Predial (precondición)
+  gobierno_comprobante_page.py  Portal del Gobierno: COMPROBANTE DE PAGO (fin del flujo)
   memphis_pages.py   Validación, Contacto, Dirección, Tarjeta, Confirmación, Resultado (+3DS) y FlujoPago
 data/
   cuentas_predial.json   Lista de cuentas de QA (se rotan)
@@ -83,13 +84,23 @@ python3 -m pytest -k TC_BP_006                          # un caso
 
 ## Link de pago y pruebas que cobran
 
-- Todas las pruebas usan el link `vigente` de `data/enlaces_prueba.json`. Se puede reutilizar mientras el pago **no se apruebe**.
-- Las pruebas marcadas `pago` confirman un pago real en el ambiente. Cuando uno se aprueba, el link pasa a `pagado` y las siguientes pruebas quedan *Pendiente* pidiendo un link nuevo: pega uno nuevo en `vigente`.
+- Todas las pruebas usan el primer link de `vigentes` en `data/enlaces_prueba.json`. Se puede reutilizar mientras el pago **no se apruebe**.
+- Las pruebas marcadas `pago` confirman un pago y **se corren al final**, después de todas las validaciones. Cada pago aprobado mueve su link a `pagados` y las pruebas siguen con el siguiente de la lista.
+- Pon en `vigentes` un link por cada prueba que aprueba un pago (alrededor de 18). Si se acaban, esas pruebas quedan *Pendiente*.
 - Para validar formularios sin cobrar nada: `python3 -m pytest -m "memphis and not pago"`.
 
-## Tarjetas
+## Tarjetas (3D Secure)
 
-`data/tarjetas_prueba.json` define los escenarios (`principal`, `aprobada_sin_3ds`, `aprobada_con_3ds`, `declinada`, `nip_incorrecto`) **sin números**. Los números van en `data/tarjetas_prueba.local.json`, con la misma estructura, y ese archivo nunca se sube al repo. Si un escenario no tiene número, sus pruebas salen *Pendiente*.
+`data/tarjetas_prueba.json` tiene el catálogo de tarjetas de prueba 3DS (`catalogo_3ds`) y el escenario que usa cada prueba (`tarjetas`). Vencimiento: cualquier fecha futura; CVV: cualquier 3 dígitos.
+
+| Tipo 3DS | VISA | MasterCard | Comportamiento | Escenario |
+|---|---|---|---|---|
+| Not challenge (**sin 3DS**) | 4111 1111 1111 1111 | 5180 3000 0000 0005 | Se aprueba sin pedir código | `principal`, `aprobada_sin_3ds`, `sin_3ds_mc` |
+| Challenge (**con 3DS**) | 4110 7600 0000 0008 / 0032 | 5292 5943 8206 0745 / 5180 3000 0000 0047 | El banco pide un código: captúralo en Chrome | `aprobada_con_3ds`, `nip_incorrecto`, `challenge_mc` |
+| Attempt | 4110 7600 0000 0040 | 5180 3000 0000 0054 | Se aprueba sin reto | `attempt` |
+| Not authenticated | 4110 7600 0000 0065 | 5180 3000 0000 0039 | Se rechaza ("Rechazada por 3DS") | `declinada` |
+
+Tarjetas reales de QA van en `data/tarjetas_prueba.local.json` (ignorado por Git); si un escenario existe en ambos archivos, gana el local. La matriz tiene la misma tabla en la hoja **Tarjetas 3DS**.
 
 ## Cuentas prediales
 

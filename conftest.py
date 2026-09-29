@@ -31,6 +31,11 @@ def pytest_addoption(parser):
     parser.addoption("--abrir-reporte", action="store_true", help="Abre el reporte HTML al terminar")
 
 
+def pytest_collection_modifyitems(config, items):
+    """Las pruebas que aprueban pagos consumen el link: se corren al final, después de las validaciones."""
+    items.sort(key=lambda item: item.get_closest_marker("pago") is not None)
+
+
 def _caso_id(item):
     marca = item.get_closest_marker("caso")
     return marca.args[0] if marca else item.name
@@ -91,8 +96,21 @@ def enlace_valido(request, driver, evidencia):
         cuenta = request.getfixturevalue("cuenta_predial")
     url = obtener_enlace_valido(driver, cuenta, evidencia)
     if not url:
-        pendiente(f"Sin enlace de pago válido (ORIGEN_ENLACE={settings.ORIGEN_ENLACE}); pon uno en data/enlaces_prueba.json -> vigente")
-    return url
+        pendiente(f"Sin link de pago vigente (ORIGEN_ENLACE={settings.ORIGEN_ENLACE}); agrega links en data/enlaces_prueba.json -> vigentes")
+    yield url
+    if request.node.get_closest_marker("pago") and settings.ORIGEN_ENLACE == "manual":
+        _liberar_si_se_pago(driver, url)
+
+
+def _liberar_si_se_pago(driver, url):
+    """Tras una prueba que cobra, reabre el link: si ya no muestra el formulario, se pagó y se pasa al siguiente."""
+    try:
+        driver.switch_to.window(driver.window_handles[0])
+        estado = FlujoPago(driver).abrir_enlace(url)
+    except Exception:
+        return
+    if estado != "formulario":
+        datos.marcar_enlace_pagado(url)
 
 
 # ==============================================

@@ -250,8 +250,9 @@ class ResultadoPage(MemphisPage):
                     limite = max(limite, time.time() + settings.TIMEOUT_3DS_SEG)
                     if settings.TRESDS_MODO == "manual":
                         print("\n" + "=" * 60)
-                        print("🏦 3D SECURE: el banco está pidiendo autenticación.")
-                        print("   Si solicita código/NIP, captúralo en Chrome. El script espera el regreso.")
+                        print("🏦 3D SECURE: la página salió al sitio del banco.")
+                        print("   Tarjeta 'Challenge': captura el código/reto en Chrome. El script espera el regreso.")
+                        print("   Tarjetas 'Not challenge', 'Attempt' y 'Not authenticated' regresan solas.")
                         print("=" * 60)
             else:
                 titulo = self.titulo()

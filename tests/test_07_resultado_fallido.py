@@ -2,8 +2,8 @@
 MÓDULO 07 - RESULTADO FALLIDO Y REINTENTO
 · TC-BP-032 a TC-BP-035, TC-BP-067 a TC-BP-069
 
-'declinada' = tarjeta sandbox que el banco rechaza. TC-BP-068/069 usan la tarjeta 'principal',
-que hoy regresa 'Rechazada por 3DS' en el ambiente dev.
+Los rechazos usan la tarjeta 'declinada' (VISA 4110 7600 0000 0065, tipo 3DS 'Not authenticated'),
+que el banco rechaza como 'Rechazada por 3DS'.
 """
 import pytest
 
@@ -70,7 +70,7 @@ def test_TC_BP_035_reintentos_repetidos(flujo, evidencia, enlace_valido, tarjeta
 
 @caso("TC-BP-067")
 def test_TC_BP_067_detalle_y_toast_de_rechazo(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    detalles = _rechazo_con(flujo, enlace_valido, tarjeta_de_prueba("principal"))
+    detalles = _rechazo_con(flujo, enlace_valido, tarjeta_de_prueba("declinada"))
     toast = flujo.resultado.toast_error()
     evidencia.nota(f"Detalle: {detalles} | Aviso: {toast}")
 
@@ -81,7 +81,7 @@ def test_TC_BP_067_detalle_y_toast_de_rechazo(flujo, evidencia, enlace_valido, t
 
 @caso("TC-BP-068")
 def test_TC_BP_068_reintentar_tras_rechazo_3ds(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    tarjeta = tarjeta_de_prueba("principal")
+    tarjeta = tarjeta_de_prueba("declinada")
     primero = _rechazo_con(flujo, enlace_valido, tarjeta)
     evidencia.nota(f"Primer intento: {primero}")
 
@@ -97,7 +97,7 @@ def test_TC_BP_068_reintentar_tras_rechazo_3ds(flujo, evidencia, enlace_valido, 
 
 @caso("TC-BP-069")
 def test_TC_BP_069_textos_de_rechazo(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    detalles = _rechazo_con(flujo, enlace_valido, tarjeta_de_prueba("principal"))
+    detalles = _rechazo_con(flujo, enlace_valido, tarjeta_de_prueba("declinada"))
     textos = {"subtítulo": flujo.resultado.subtitulo(), "estado": detalles.get("Estado", "")}
     evidencia.nota(f"Textos: {textos}")
 

@@ -46,9 +46,9 @@ def test_TC_BP_002_enlace_invalido(flujo, evidencia):
 
 @caso("TC-BP-003")
 def test_TC_BP_003_enlace_ya_pagado(flujo, evidencia):
-    url = datos.enlace_fijo("pagado")
+    url = datos.enlace_pagado()
     if not url:
-        pendiente("Falta el enlace 'pagado' en data/enlaces_prueba.json (se llena solo tras un pago aprobado)")
+        pendiente("Aún no hay links pagados en data/enlaces_prueba.json (se llena solo tras un pago aprobado)")
 
     estado = flujo.abrir_enlace(url)
     evidencia.captura("Enlace de transacción ya pagada")
@@ -79,20 +79,20 @@ def test_TC_BP_004_mismo_enlace_dos_pestanas(flujo, evidencia, enlace_valido, ta
 
 
 @caso("TC-BP-005")
-def test_TC_BP_005_token_expira_sin_interaccion(flujo, evidencia, enlace_valido):
+def test_TC_BP_005_token_no_expira_sin_interaccion(flujo, evidencia, enlace_valido):
+    """Regla de revisión (29/09/2026): el token NO debe expirar; si la referencia queda en uso, se solicita liberarla."""
     flujo.abrir_enlace(enlace_valido)
     limite = settings.TIMEOUT_TOKEN_SEG
 
-    print(f"   ⏳ Vigilando hasta {limite}s a que expire el token sin interactuar…")
+    print(f"   ⏳ Vigilando {limite}s sin interactuar (el token no debe expirar)…")
     reaccion = flujo.validacion.esperar_reaccion_por_token(limite)
-    evidencia.captura(f"Tras la espera del token: {reaccion or 'sin cambios'}")
-    if not reaccion:
-        pytest.fail(f"Tiempo de espera excedido ({limite} s): el token no expiró ni se reinició el flujo")
+    evidencia.captura(f"Tras {limite}s sin interactuar: {reaccion or 'sin cambios'}")
+    assert not reaccion, f"El token expiró o el flujo se reinició por inactividad ({reaccion})"
 
-    estado = flujo.validacion.esperar_fin_validacion()
-    evidencia.captura(f"Después de la reacción ({reaccion}): {estado}")
-    assert estado != "invalido", "Se quedó en 'Link de pago no válido' sin salida"
-    assert estado == "formulario", f"El flujo no se reinició con un token nuevo (estado: {estado})"
+    flujo.contacto.llenar(**CONTACTO_VALIDO)
+    flujo.contacto.continuar()
+    evidencia.captura("Después de continuar")
+    assert flujo.direccion.visible(), f"No se pudo continuar el pago tras la inactividad: {flujo.contacto.errores()}"
 
 
 @caso("TC-BP-051")

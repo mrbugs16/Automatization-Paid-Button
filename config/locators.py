@@ -25,6 +25,11 @@ class GobiernoLoc:
     BTN_CONSULTAR = (By.CSS_SELECTOR, "form#forma button[type='submit']")
     MENSAJE_ERROR = (By.CSS_SELECTOR, ".alert, .error, .text-danger, .invalid-feedback")
 
+    # Comprobante de pago (a donde regresa el Botón de Pago tras un pago aprobado)
+    COMPROBANTE_TITULO = (By.XPATH, "//*[normalize-space()='COMPROBANTE DE PAGO']")
+    BTN_COMPROBANTE_PDF = (By.XPATH, "//*[self::a or self::button][contains(normalize-space(),'Comprobante de Pago')]")
+    BTN_INICIO = (By.XPATH, "//*[self::a or self::button][contains(normalize-space(),'Inicio')]")
+
     # TODO: pantalla posterior a "Consultar" (detalle del adeudo y botón que manda a Memphis)
     BTN_PAGAR_EN_LINEA = (By.XPATH, "//*[self::a or self::button][contains(translate(., 'PAGAR', 'pagar'), 'pagar')]")
 

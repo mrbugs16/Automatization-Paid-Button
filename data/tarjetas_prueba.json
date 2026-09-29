@@ -1,15 +1,145 @@
 {
   "_instrucciones": [
-    "Tarjetas de PRUEBA por escenario. NO pongas números de tarjeta aquí: este archivo se sube al repo.",
-    "Los números van en data/tarjetas_prueba.local.json (ignorado por Git), con la misma estructura.",
-    "Si un escenario no tiene número, las pruebas que lo usan salen como 'Pendiente'.",
-    "vigencia va sin diagonal (MMAA): la página pone la diagonal sola."
+    "Tarjetas de PRUEBA 3D Secure del procesador (sandbox). Se aceptan con cualquier vencimiento futuro y CVV de 3 dígitos.",
+    "catalogo_3ds: las 10 tarjetas de prueba por tipo de 3DS. tarjetas: escenario que usa cada prueba automatizada.",
+    "Not challenge: autentica sin pedir nada al usuario (pruebas SIN 3DS).",
+    "Challenge: el banco pide un código/reto (pruebas CON 3DS; el tester captura el código en Chrome).",
+    "Attempt: autenticación intentada; debe aprobarse sin reto.",
+    "Not authenticated: la autenticación falla; debe rechazarse ('Rechazada por 3DS').",
+    "Tarjetas reales de QA van en data/tarjetas_prueba.local.json (no se sube). Si un escenario existe en ambos, gana el local."
+  ],
+  "catalogo_3ds": [
+    {
+      "marca": "VISA",
+      "numero": "4111111111111111",
+      "tipo_3ds": "Not challenge"
+    },
+    {
+      "marca": "MasterCard",
+      "numero": "5180300000000005",
+      "tipo_3ds": "Not challenge"
+    },
+    {
+      "marca": "VISA",
+      "numero": "4110760000000008",
+      "tipo_3ds": "Challenge"
+    },
+    {
+      "marca": "VISA",
+      "numero": "4110760000000032",
+      "tipo_3ds": "Challenge"
+    },
+    {
+      "marca": "MasterCard",
+      "numero": "5292594382060745",
+      "tipo_3ds": "Challenge"
+    },
+    {
+      "marca": "MasterCard",
+      "numero": "5180300000000047",
+      "tipo_3ds": "Challenge"
+    },
+    {
+      "marca": "VISA",
+      "numero": "4110760000000040",
+      "tipo_3ds": "Attempt"
+    },
+    {
+      "marca": "MasterCard",
+      "numero": "5180300000000054",
+      "tipo_3ds": "Attempt"
+    },
+    {
+      "marca": "VISA",
+      "numero": "4110760000000065",
+      "tipo_3ds": "Not authenticated"
+    },
+    {
+      "marca": "MasterCard",
+      "numero": "5180300000000039",
+      "tipo_3ds": "Not authenticated"
+    }
   ],
   "tarjetas": {
-    "principal":        {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": true},
-    "aprobada_sin_3ds": {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": false},
-    "aprobada_con_3ds": {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": true},
-    "declinada":        {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": false},
-    "nip_incorrecto":   {"nombre": "Juan", "apellido": "Hernandez", "numero": "", "vigencia": "", "cvv": "", "requiere_3ds": true}
+    "principal": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "4111111111111111",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "VISA",
+      "tipo_3ds": "Not challenge",
+      "requiere_3ds": false
+    },
+    "aprobada_sin_3ds": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "4111111111111111",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "VISA",
+      "tipo_3ds": "Not challenge",
+      "requiere_3ds": false
+    },
+    "sin_3ds_mc": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "5180300000000005",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "MasterCard",
+      "tipo_3ds": "Not challenge",
+      "requiere_3ds": false
+    },
+    "aprobada_con_3ds": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "4110760000000008",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "VISA",
+      "tipo_3ds": "Challenge",
+      "requiere_3ds": true
+    },
+    "challenge_mc": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "5292594382060745",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "MasterCard",
+      "tipo_3ds": "Challenge",
+      "requiere_3ds": true
+    },
+    "nip_incorrecto": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "4110760000000032",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "VISA",
+      "tipo_3ds": "Challenge",
+      "requiere_3ds": true
+    },
+    "attempt": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "4110760000000040",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "VISA",
+      "tipo_3ds": "Attempt",
+      "requiere_3ds": true
+    },
+    "declinada": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "4110760000000065",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "VISA",
+      "tipo_3ds": "Not authenticated",
+      "requiere_3ds": true
+    }
   }
 }
