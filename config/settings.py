@@ -50,6 +50,10 @@ MEMPHIS_DISPONIBLE = _bool("MEMPHIS_DISPONIBLE", "true")
 # gobierno : se recorre el portal del Gobierno (Predial -> captcha -> pagar)
 ORIGEN_ENLACE = os.getenv("ORIGEN_ENLACE", "manual")
 ENLACE_PAGO = os.getenv("ENLACE_PAGO", "")
+# Si no hay link válido, la suite abre el portal (Predial) y espera a que el tester capture
+# la referencia/folio + captcha y dé 'Consultar'. Con false, la prueba queda Pendiente.
+PEDIR_REFERENCIA = _bool("PEDIR_REFERENCIA", "true")
+TIMEOUT_CAPTURA_REFERENCIA = int(os.getenv("TIMEOUT_CAPTURA_REFERENCIA", "180"))
 
 # ==============================================
 # 3D SECURE

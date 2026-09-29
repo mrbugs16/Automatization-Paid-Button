@@ -13,7 +13,7 @@ import pytest
 from config import settings
 from core import datos
 from core.driver_factory import crear_driver
-from core.enlace_pago import obtener_enlace_valido
+from core.enlace_pago import capturar_desde_portal, obtener_enlace_valido
 from core.evidencia import Evidencia
 from core.marcadores import PREFIJO_MANUAL, PREFIJO_PENDIENTE, pendiente
 from core.matriz import cargar_matriz, escribir_resultados
@@ -97,8 +97,14 @@ def enlace_valido(request, driver, evidencia):
     url = obtener_enlace_valido(driver, cuenta, evidencia)
     if settings.ORIGEN_ENLACE == "manual":
         url = _primer_enlace_que_funcione(driver, url)
+        if not url and settings.PEDIR_REFERENCIA:
+            url = capturar_desde_portal(driver, evidencia)
+            if url:
+                datos.agregar_enlace(url)
+                url = _primer_enlace_que_funcione(driver, url)
     if not url:
-        pendiente("No hay links de pago válidos: agrega referencias sin pagar en data/enlaces_prueba.json -> vigentes")
+        pendiente(f"No hay link de pago válido (no se capturó una referencia en {settings.TIMEOUT_CAPTURA_REFERENCIA} s "
+                  "o no hay links en data/enlaces_prueba.json -> vigentes)")
     yield url
     if request.node.get_closest_marker("pago") and settings.ORIGEN_ENLACE == "manual":
         _liberar_si_se_pago(driver, url)

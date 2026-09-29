@@ -3,11 +3,13 @@
     "Solo aplica con ORIGEN_ENLACE=manual. También se puede pasar un link con la variable ENLACE_PAGO.",
     "vigentes: links de pago sin pagar. Todas las pruebas usan el primero; se puede reutilizar mientras no se apruebe un pago.",
     "Cuando un pago se APRUEBA, ese link pasa a 'pagados' y las pruebas siguen con el siguiente de la lista.",
-    "Agrega un link por cada prueba que aprueba un pago (marcador 'pago'); si se acaban, esas pruebas quedan Pendiente.",
     "vencido / mal_formado: enlaces fijos para TC-BP-002. TC-BP-003 usa el último de 'pagados'.",
-    "invalidos: links que la suite encontró vencidos/pagados al iniciar una prueba (se mueven solos)."
+    "invalidos: links que la suite encontró vencidos/pagados al iniciar una prueba (se mueven solos).",
+    "Si no hay links válidos, la suite abre el portal (Predial) y espera 3 min a que captures la referencia + captcha; el link obtenido se agrega aquí solo."
   ],
-  "vigentes": [],
+  "vigentes": [
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=133de5bc-f7b8-4489-aa28-e084af0e2583&identifier=b64b49e866f7f6ed8a8c8e60c4f265f7137a6bcb908089f9ce45f08c7b71baa4"
+  ],
   "pagados": [],
   "vencido": "",
   "mal_formado": "https://pagospueblacapital-dev.memphis.mx/payout?token=token-invalido-qa",

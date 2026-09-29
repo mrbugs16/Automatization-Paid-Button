@@ -96,6 +96,13 @@ def tarjetas_3ds(tipo=None):
     return [t for t in catalogo if tipo is None or t["tipo_3ds"] == tipo]
 
 
+def agregar_enlace(url):
+    datos = _leer(settings.ENLACES_JSON)
+    if url not in datos.setdefault("vigentes", []):
+        datos["vigentes"].append(url)
+        _guardar(settings.ENLACES_JSON, datos)
+
+
 def descartar_enlace(url, motivo):
     """Saca de 'vigentes' un link que ya no muestra el formulario (vencido, pagado o inválido)."""
     datos = _leer(settings.ENLACES_JSON)

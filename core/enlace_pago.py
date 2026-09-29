@@ -3,10 +3,13 @@ Obtención del enlace de pago de Memphis según ORIGEN_ENLACE (manual | api | go
 El enlace se puede reutilizar mientras el pago no se apruebe.
 """
 import time
+from urllib.parse import urlparse
 
 import requests
+from selenium.common.exceptions import WebDriverException
 
 from config import settings
+from config.locators import GobiernoLoc
 from core import datos
 from pages.gobierno_predial_page import PredialPage
 
@@ -46,6 +49,61 @@ def generar_por_gobierno(driver, cuenta, evidencia=None):
     if not predial.consultar_cuenta(cuenta, evidencia):
         raise RuntimeError(f"No fue posible consultar la cuenta {cuenta['alias']} en el portal del Gobierno")
     return predial.ir_a_boton_de_pago()
+
+
+def _link_memphis_actual(driver):
+    """URL del botón de pago con token e identifier. La app limpia la URL al cargar,
+    pero guarda ambos valores en sessionStorage (payment_uuid / payment_identifier)."""
+    url = driver.current_url
+    host = urlparse(url).hostname or ""
+    if not host.endswith("memphis.mx"):
+        return None
+    if "token=" in url and "identifier=" in url:
+        return url
+    token, identificador = driver.execute_script(
+        "return [sessionStorage.getItem('payment_uuid'), sessionStorage.getItem('payment_identifier')];")
+    if token and identificador:
+        return f"https://{host}/payout?token={token}&identifier={identificador}"
+    return None
+
+
+def capturar_desde_portal(driver, evidencia=None, timeout=settings.TIMEOUT_CAPTURA_REFERENCIA):
+    """Abre Predial y espera a que el tester capture la referencia/folio + captcha y dé 'Consultar'.
+    En la pantalla del adeudo intenta dar clic en el botón de pago; si no lo encuentra, lo da el tester.
+    Regresa la URL del botón de pago de Memphis, o None si se agotó el tiempo."""
+    predial = PredialPage(driver)
+    predial.abrir_inicio()
+    predial.ir_a_predial()
+    predial.scroll_a(GobiernoLoc.INPUT_CAPTCHA)
+    if evidencia:
+        evidencia.captura("Portal - Pago de predial: esperando referencia y captcha")
+
+    print("\n" + "=" * 64)
+    print(f"🧾 SE NECESITA UNA REFERENCIA NUEVA (tienes {timeout // 60} min):")
+    print("   1. En Chrome, captura la referencia / línea de captura / cuenta.")
+    print("   2. Captura el captcha y da clic en 'Consultar'.")
+    print("   3. Si en la siguiente pantalla no avanza solo, da clic en el botón de pago.")
+    print("=" * 64)
+
+    limite = time.time() + timeout
+    intento_boton = False
+    while time.time() < limite:
+        try:
+            url = _link_memphis_actual(driver)
+            if url:
+                if evidencia:
+                    evidencia.captura("Botón de pago abierto desde el portal")
+                return url
+            if "indexI" in driver.current_url and not intento_boton:
+                intento_boton = True
+                if predial.existe(GobiernoLoc.BTN_PAGAR_EN_LINEA, timeout=3):
+                    if evidencia:
+                        evidencia.captura("Portal - detalle del adeudo")
+                    predial.click(GobiernoLoc.BTN_PAGAR_EN_LINEA)
+        except WebDriverException:
+            pass  # la página está navegando
+        time.sleep(0.5)
+    return None
 
 
 def obtener_enlace_valido(driver=None, cuenta=None, evidencia=None):

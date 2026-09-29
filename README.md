@@ -87,6 +87,7 @@ python3 -m pytest -k TC_BP_006                          # un caso
 - Todas las pruebas usan el primer link de `vigentes` en `data/enlaces_prueba.json`. Se puede reutilizar mientras el pago **no se apruebe**.
 - Las pruebas marcadas `pago` confirman un pago y **se corren al final**, después de todas las validaciones. Cada pago aprobado mueve su link a `pagados` y las pruebas siguen con el siguiente de la lista.
 - Pon en `vigentes` un link por cada prueba que aprueba un pago (alrededor de 18). Si se acaban, esas pruebas quedan *Pendiente*.
+- **Si no hay un link válido**, la suite abre el portal → Predial y espera **3 minutos** (`TIMEOUT_CAPTURA_REFERENCIA`) a que captures en Chrome la referencia/folio y el captcha y des *Consultar*. En la pantalla del adeudo intenta dar clic en el botón de pago (si no lo encuentra, dalo tú). El link de Memphis que se obtiene se guarda en `vigentes` y se reutiliza. Para desactivarlo: `PEDIR_REFERENCIA=false`.
 - Para validar formularios sin cobrar nada: `python3 -m pytest -m "memphis and not pago"`.
 
 ## Tarjetas (3D Secure)
