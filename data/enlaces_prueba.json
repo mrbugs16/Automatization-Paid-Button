@@ -4,12 +4,14 @@
     "vigentes: links de pago sin pagar. Todas las pruebas usan el primero; se puede reutilizar mientras no se apruebe un pago.",
     "Cuando un pago se APRUEBA, ese link pasa a 'pagados' y las pruebas siguen con el siguiente de la lista.",
     "Agrega un link por cada prueba que aprueba un pago (marcador 'pago'); si se acaban, esas pruebas quedan Pendiente.",
-    "vencido / mal_formado: enlaces fijos para TC-BP-002. TC-BP-003 usa el último de 'pagados'."
+    "vencido / mal_formado: enlaces fijos para TC-BP-002. TC-BP-003 usa el último de 'pagados'.",
+    "invalidos: links que la suite encontró vencidos/pagados al iniciar una prueba (se mueven solos)."
   ],
-  "vigentes": [
-    "https://pagospueblacapital-dev.memphis.mx/payout?token=9a188c7f-b96f-4c8f-b065-b336e82055dd&identifier=043aa0b3f685e7b7f818e922037c798fe38eff8cc514d2df1171d8e7249b6a6f"
-  ],
+  "vigentes": [],
   "pagados": [],
   "vencido": "",
-  "mal_formado": "https://pagospueblacapital-dev.memphis.mx/payout?token=token-invalido-qa"
+  "mal_formado": "https://pagospueblacapital-dev.memphis.mx/payout?token=token-invalido-qa",
+  "invalidos": [
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=9a188c7f-b96f-4c8f-b065-b336e82055dd&identifier=043aa0b3f685e7b7f818e922037c798fe38eff8cc514d2df1171d8e7249b6a6f"
+  ]
 }

@@ -95,11 +95,26 @@ def enlace_valido(request, driver, evidencia):
     if settings.ORIGEN_ENLACE == "gobierno":
         cuenta = request.getfixturevalue("cuenta_predial")
     url = obtener_enlace_valido(driver, cuenta, evidencia)
+    if settings.ORIGEN_ENLACE == "manual":
+        url = _primer_enlace_que_funcione(driver, url)
     if not url:
-        pendiente(f"Sin link de pago vigente (ORIGEN_ENLACE={settings.ORIGEN_ENLACE}); agrega links en data/enlaces_prueba.json -> vigentes")
+        pendiente("No hay links de pago válidos: agrega referencias sin pagar en data/enlaces_prueba.json -> vigentes")
     yield url
     if request.node.get_closest_marker("pago") and settings.ORIGEN_ENLACE == "manual":
         _liberar_si_se_pago(driver, url)
+
+
+def _primer_enlace_que_funcione(driver, url):
+    """Abre el link antes de la prueba; si ya no muestra el formulario (pagado/vencido), prueba el siguiente."""
+    while url:
+        estado = FlujoPago(driver).abrir_enlace(url)
+        if estado == "formulario":
+            return url
+        if settings.ENLACE_PAGO:  # link fijo por variable: no hay lista de la cual tomar otro
+            pendiente(f"El link de ENLACE_PAGO ya no es válido (estado: {estado}); usa uno nuevo")
+        datos.descartar_enlace(url, estado)
+        url = datos.enlace_vigente()
+    return None
 
 
 def _liberar_si_se_pago(driver, url):

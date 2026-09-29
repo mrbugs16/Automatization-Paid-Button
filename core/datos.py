@@ -94,3 +94,13 @@ def tarjetas_3ds(tipo=None):
     """Catálogo de tarjetas de prueba 3DS (opcionalmente filtrado: 'Not challenge', 'Challenge', 'Attempt', 'Not authenticated')."""
     catalogo = _leer(settings.TARJETAS_JSON).get("catalogo_3ds", [])
     return [t for t in catalogo if tipo is None or t["tipo_3ds"] == tipo]
+
+
+def descartar_enlace(url, motivo):
+    """Saca de 'vigentes' un link que ya no muestra el formulario (vencido, pagado o inválido)."""
+    datos = _leer(settings.ENLACES_JSON)
+    if url in datos.get("vigentes", []):
+        datos["vigentes"].remove(url)
+        datos.setdefault("invalidos", []).append(url)
+        _guardar(settings.ENLACES_JSON, datos)
+        print(f"   ⚠️ Link descartado ({motivo}); quedan {len(datos['vigentes'])} vigente(s) en {settings.ENLACES_JSON.name}")
