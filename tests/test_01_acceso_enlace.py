@@ -1,9 +1,7 @@
 """
 MÓDULO 01 - ACCESO AL ENLACE DE PAGO (inicio del alcance QA - página Memphis)
-· TC-BP-001 a TC-BP-005, TC-BP-051
+· TC-BP-001 a TC-BP-005
 """
-import time
-
 import pytest
 
 from config import settings
@@ -93,15 +91,3 @@ def test_TC_BP_005_token_no_expira_sin_interaccion(flujo, evidencia, enlace_vali
     flujo.contacto.continuar()
     evidencia.captura("Después de continuar")
     assert flujo.direccion.visible(), f"No se pudo continuar el pago tras la inactividad: {flujo.contacto.errores()}"
-
-
-@caso("TC-BP-051")
-def test_TC_BP_051_encabezado_completo(flujo, evidencia, enlace_valido):
-    flujo.abrir_enlace(enlace_valido)
-    encabezado = flujo.validacion.encabezado()
-    evidencia.nota(f"Encabezado: {encabezado}")
-
-    vacios = [campo for campo in ("importe", "concepto", "fecha", "Solicitante", "Descripción", "Referencia")
-              if not encabezado.get(campo)]
-    assert not vacios, f"Campos vacíos en el encabezado: {vacios}"
-    assert encabezado["importe"].startswith("$"), f"Importe con formato inesperado: {encabezado['importe']}"

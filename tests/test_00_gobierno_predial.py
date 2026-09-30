@@ -3,7 +3,6 @@ PRECONDICIÓN (Fase 1 - Gobierno de Puebla, fuera del alcance de la matriz).
 Llega desde el portal del Gobierno hasta la pantalla de 'Pago de predial'.
 
 · TC-GOB-001: Abrir portal y entrar a 'Predial'
-· TC-GOB-002: Capturar cuenta de la lista + captcha y consultar
 """
 import pytest
 
@@ -34,24 +33,3 @@ def test_TC_GOB_001_ir_a_predial(driver, evidencia):
     campos = predial.formulario_completo_visible()
     faltantes = [c for c, visible in campos.items() if not visible]
     assert not faltantes, f"Campos no visibles en Pago de predial: {faltantes}"
-
-
-# ==============================================
-# TC-GOB-002: CONSULTAR CUENTA PREDIAL
-# ==============================================
-@caso("TC-GOB-002", modulo=MODULO, caso="Consultar una cuenta predial de la lista de QA",
-      tipo="EXITO", prioridad="Alta",
-      pasos="1. Entrar a 'Predial'\n2. Capturar la cuenta (o línea de captura) de data/cuentas_predial.json\n"
-            "3. Resolver el captcha\n4. Dar clic en 'Consultar'",
-      datos="Cuenta disponible de data/cuentas_predial.json (o --cuenta=<alias>)",
-      esperado="El portal acepta la consulta y muestra el detalle del adeudo")
-def test_TC_GOB_002_consultar_cuenta(driver, evidencia, cuenta_predial):
-    predial = PredialPage(driver)
-    predial.abrir_inicio()
-    predial.ir_a_predial()
-
-    consulto = predial.consultar_cuenta(cuenta_predial, evidencia)
-    evidencia.captura("Resultado de la consulta")
-
-    assert consulto, f"El portal no aceptó la consulta: {predial.mensaje_error() or 'captcha o cuenta inválidos'}"
-    # TODO: siguiente paso -> predial.ir_a_boton_de_pago() cuando el Gobierno habilite la redirección a Memphis

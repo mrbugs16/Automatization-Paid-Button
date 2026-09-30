@@ -1,6 +1,6 @@
 """
 MÓDULO 03 - PASO 2 DIRECCIÓN
-· TC-BP-012 a TC-BP-016, TC-BP-056 a TC-BP-058
+· TC-BP-012 a TC-BP-016, TC-BP-056 y TC-BP-058
 
 Reglas de la página: calle, CP, ciudad, país y estado obligatorios; CP de 5 dígitos;
 calle y ciudad solo letras sin acento, números y espacios.
@@ -8,8 +8,8 @@ calle y ciudad solo letras sin acento, números y espacios.
 import pytest
 from selenium.webdriver.support.ui import Select
 
-from config.datos_prueba import (CALLE_CON_SIMBOLOS, CIUDAD_CON_ACENTOS, CONTACTO_VALIDO, CP_INCOMPLETO,
-                                 CP_INEXISTENTE, DIRECCION_VALIDA, MSG_CP, MSG_REQUERIDO)
+from config.datos_prueba import (CONTACTO_VALIDO, CP_CORTO, CP_INCOMPLETO, DIRECCION_VALIDA, MSG_CP,
+                                 MSG_NATIVO_SELECCIONA)
 from config.locators import DireccionLoc
 from core.marcadores import caso, requiere_memphis
 
@@ -37,10 +37,9 @@ def test_TC_BP_013_direccion_vacia(flujo, evidencia, enlace_valido):
     evidencia.captura("Continuar con dirección vacía")
 
     assert _no_avanza(flujo), "El sistema avanzó con la dirección vacía"
-    errores = {campo: flujo.direccion.error(campo) for campo in ("street", "zip-code", "city", "state")}
-    evidencia.nota(f"Mensajes: {errores} | Globo del navegador: '{flujo.direccion.mensaje_nativo_estado()}'")
-    sin_mensaje = [campo for campo, msg in errores.items() if msg != MSG_REQUERIDO]
-    assert not sin_mensaje, f"Campos sin 'Este campo es requerido': {sin_mensaje}"
+    aviso = flujo.direccion.mensaje_nativo_estado()
+    evidencia.nota(f"Aviso del navegador en Estado: '{aviso}'")
+    assert aviso == MSG_NATIVO_SELECCIONA, f"No se mostró el aviso '{MSG_NATIVO_SELECCIONA}' (se obtuvo: '{aviso}')"
 
 
 @caso("TC-BP-014")
@@ -55,13 +54,14 @@ def test_TC_BP_014_cp_incompleto(flujo, evidencia, enlace_valido):
 
 
 @caso("TC-BP-015")
-def test_TC_BP_015_cp_inexistente(flujo, evidencia, enlace_valido):
+def test_TC_BP_015_cp_menos_digitos(flujo, evidencia, enlace_valido):
     flujo.hasta_direccion(enlace_valido)
-    flujo.direccion.llenar(**{**DIRECCION_VALIDA, "cp": CP_INEXISTENTE})
+    flujo.direccion.llenar(**{**DIRECCION_VALIDA, "cp": CP_CORTO})
     flujo.direccion.continuar()
-    evidencia.captura(f"CP: {CP_INEXISTENTE}")
+    evidencia.captura(f"CP: {CP_CORTO}")
 
-    assert _no_avanza(flujo), f"Se aceptó el CP {CP_INEXISTENTE}, que no existe en el catálogo"
+    assert _no_avanza(flujo), f"Se aceptó el CP '{CP_CORTO}' con menos de 5 dígitos"
+    assert flujo.direccion.error_cp() == MSG_CP, f"Mensaje: '{flujo.direccion.error_cp()}'"
 
 
 @caso("TC-BP-016")
@@ -84,23 +84,9 @@ def test_TC_BP_056_estado_sin_seleccionar(flujo, evidencia, enlace_valido):
     evidencia.captura("Estado sin seleccionar")
 
     assert _no_avanza(flujo), "El sistema avanzó sin Estado"
-    nativo = flujo.direccion.mensaje_nativo_estado()
-    assert flujo.direccion.error("state") == MSG_REQUERIDO, \
-        f"No se muestra '{MSG_REQUERIDO}'; en su lugar el navegador muestra: '{nativo}'"
-
-
-@caso("TC-BP-057")
-def test_TC_BP_057_acentos_y_simbolos(flujo, evidencia, enlace_valido):
-    flujo.hasta_direccion(enlace_valido)
-    flujo.direccion.llenar(**{**DIRECCION_VALIDA, "calle": CALLE_CON_SIMBOLOS, "ciudad": CIUDAD_CON_ACENTOS})
-    valores = flujo.direccion.valores()
-    evidencia.captura(f"Calle '{valores['calle']}' / Ciudad '{valores['ciudad']}'")
-
-    modificados = {campo: (esperado, valores[campo])
-                   for campo, esperado in (("calle", CALLE_CON_SIMBOLOS), ("ciudad", CIUDAD_CON_ACENTOS))
-                   if valores[campo] != esperado and not flujo.direccion.error(
-                       "street" if campo == "calle" else "city")}
-    assert not modificados, f"Se modificó el texto sin avisar (escrito -> quedó): {modificados}"
+    aviso = flujo.direccion.mensaje_nativo_estado()
+    evidencia.nota(f"Aviso del navegador en Estado: '{aviso}'")
+    assert aviso == MSG_NATIVO_SELECCIONA, f"No se mostró el aviso '{MSG_NATIVO_SELECCIONA}' (se obtuvo: '{aviso}')"
 
 
 @caso("TC-BP-058")

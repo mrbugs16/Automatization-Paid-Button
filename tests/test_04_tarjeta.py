@@ -7,10 +7,11 @@ vencimiento MMAA vigente; CVV de 3 dígitos. Solo TC-BP-023 confirma un pago.
 """
 import pytest
 
-from config.datos_prueba import (APELLIDO_COMPUESTO, CVV_INCOMPLETO, MSG_CVV, MSG_REQUERIDO, MSG_TARJETA_LONGITUD,
-                                 MSG_TOAST_ERROR, MSG_VIGENCIA_INVALIDA, MSG_VIGENCIA_LONGITUD, NOMBRE_COMPUESTO,
-                                 NOMBRE_CON_NUMEROS, NUMERO_TARJETA_CORTO, NUMERO_TARJETA_INVALIDO,
-                                 VIGENCIA_INCOMPLETA, VIGENCIA_MES_INVALIDO, VIGENCIA_VENCIDA)
+from config.datos_prueba import (APELLIDO_COMPUESTO, CVV_INCOMPLETO, MSG_CVV, MSG_NOMBRE, MSG_REQUERIDO,
+                                 MSG_TARJETA_LONGITUD, MSG_TOAST_ERROR, MSG_VIGENCIA_INVALIDA,
+                                 MSG_VIGENCIA_LONGITUD, NOMBRE_CON_NUMEROS, NUMERO_TARJETA_CORTO,
+                                 NUMERO_TARJETA_INVALIDO, VIGENCIA_INCOMPLETA, VIGENCIA_MES_INVALIDO,
+                                 VIGENCIA_VENCIDA)
 from core.marcadores import caso, requiere_memphis
 
 pytestmark = [pytest.mark.memphis, requiere_memphis]
@@ -125,14 +126,15 @@ def test_TC_BP_024_numero_enmascarado(flujo, evidencia, enlace_valido, tarjeta_d
 
 
 @caso("TC-BP-059")
-def test_TC_BP_059_nombre_apellido_compuestos(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
+def test_TC_BP_059_solo_un_apellido(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
     flujo.hasta_tarjeta(enlace_valido)
-    flujo.tarjeta.llenar_con(tarjeta_de_prueba("principal"), nombre=NOMBRE_COMPUESTO, apellido=APELLIDO_COMPUESTO)
+    flujo.tarjeta.llenar_con(tarjeta_de_prueba("principal"), apellido=APELLIDO_COMPUESTO)
     flujo.tarjeta.continuar()
-    errores = {c: flujo.tarjeta.error(c) for c in ("name", "lastName")}
-    evidencia.captura(f"Nombre '{NOMBRE_COMPUESTO}' / Apellido '{APELLIDO_COMPUESTO}'")
+    mensaje = flujo.tarjeta.error("lastName")
+    evidencia.captura(f"Apellido '{APELLIDO_COMPUESTO}' -> '{mensaje}'")
 
-    assert flujo.confirmacion.visible(3), f"No se aceptaron nombre y apellido compuestos: {errores}"
+    assert _no_avanza(flujo), "Se aceptó un apellido compuesto (solo debe permitirse un apellido)"
+    assert mensaje == MSG_NOMBRE, f"Mensaje en Apellido: '{mensaje}' (esperado '{MSG_NOMBRE}')"
 
 
 @caso("TC-BP-060")

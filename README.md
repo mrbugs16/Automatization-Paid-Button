@@ -1,7 +1,7 @@
 # [MEMPHIS] Botón de Pago · Automatización QA
 
 Pruebas E2E del Botón de Pago del Gobierno de Puebla con **Python + Appium (Google Chrome) + pytest**.
-Cubre los 101 casos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (capturas + reporte HTML con filtros) en cada ejecución.
+Cubre los 71 casos activos de `data/Matriz Pruebas Boton Pago.xlsx` y genera evidencia (capturas + reporte HTML con filtros) en cada ejecución.
 
 ---
 
@@ -57,8 +57,7 @@ appium driver install chromium
 2. Correr las pruebas:
 
 ```bash
-python3 -m pytest -m "not lento" --abrir-reporte        # TODO de una (~20 min, sin esperas largas)
-python3 -m pytest --abrir-reporte                       # TODO completo (+5 min por el 3DS de TC-BP-028)
+python3 -m pytest --abrir-reporte                       # TODO de una
 python3 -m pytest -k TC_BP_050 --abrir-reporte          # happy path
 python3 -m pytest -m "memphis and not pago"             # todas las validaciones, sin cobrar
 python3 -m pytest -m memphis                            # Memphis completo (incluye pagos)
@@ -116,6 +115,10 @@ El captcha del portal cambia en cada carga y es un control de seguridad del Gobi
 - **fijo** / **deshabilitado**: para cuando el equipo del Gobierno habilite un captcha fijo o lo desactive en el ambiente de QA.
 
 Como la Fase 1 está fuera de alcance, lo ideal es obtener los enlaces con `ORIGEN_ENLACE=api` (POST a `transmission-sequence`), que no pasa por el captcha. Para eso falta que desarrollo comparta cómo se calcula `mp_signature`.
+
+## Casos eliminados
+
+En la revisión del 30/09/2026 se quitaron 30 casos de la matriz (y sus pruebas). Sus filas quedan con solo el ID, sin renumerar, y no se cuentan en la Portada ni en el Dashboard.
 
 ## Reporte
 

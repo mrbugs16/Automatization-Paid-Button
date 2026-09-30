@@ -28,7 +28,7 @@ TELEFONO_LARGO = "55400763331234"  # 14 dígitos (máximo permitido: 13)
 # ==============================================
 DIRECCION_VALIDA = {"calle": "Reforma 245", "cp": "16200", "ciudad": "Cholula", "pais": "MEX", "estado": "PUE"}
 CP_INCOMPLETO = "2000"
-CP_INEXISTENTE = "00000"
+CP_CORTO = "123"
 CALLE_CON_SIMBOLOS = "Av. Juárez #12"
 CIUDAD_CON_ACENTOS = "Tehuacán"
 
@@ -52,6 +52,7 @@ MSG_REQUERIDO = "Este campo es requerido"
 MSG_CORREO_INVALIDO = "El campo email debe tener un formato de correo."
 MSG_TELEFONO = "El número de teléfono debe tener mínimo 10 dígitos"
 MSG_CP = "Debe ser un código postal válido."
+MSG_NATIVO_SELECCIONA = "Please select an item in the list."  # aviso del navegador en el select de Estado
 MSG_SOLO_LETRAS_NUMEROS = "Sólo se permiten letras y números con espacios"
 MSG_NOMBRE = "Sólo se permiten letras con acentos"
 MSG_TARJETA_LONGITUD = "La tarjeta debe tener 15 o 16 dígitos"

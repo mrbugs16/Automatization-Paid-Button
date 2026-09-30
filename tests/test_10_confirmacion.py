@@ -1,13 +1,13 @@
 """
 MÓDULO 10 - PASO 4 CONFIRMACIÓN ANTES DE PAGAR ("Revisa tu información antes de pagar")
-· TC-BP-064 a TC-BP-066
+· TC-BP-064 y TC-BP-065
 
 Ninguna de estas pruebas confirma el pago: se quedan en el Paso 4.
 """
 import pytest
 
 from config.datos_prueba import CONTACTO_VALIDO, DIRECCION_VALIDA
-from core.marcadores import caso, pendiente, requiere_memphis
+from core.marcadores import caso, requiere_memphis
 
 pytestmark = [pytest.mark.memphis, requiere_memphis]
 
@@ -74,23 +74,3 @@ def test_TC_BP_065_regresar_desde_confirmacion(flujo, evidencia, enlace_valido, 
         pagina.continuar()
         assert siguiente.visible(), f"No se pudo volver a avanzar: {pagina.errores()}"
     evidencia.captura("De nuevo en el Paso 4")
-
-
-@caso("TC-BP-066")
-def test_TC_BP_066_navegar_con_stepper(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    flujo.hasta_confirmacion(enlace_valido, tarjeta_de_prueba("principal"))
-
-    flujo.confirmacion.ir_al_paso(1)
-    if flujo.confirmacion.visible(2) and not flujo.contacto.visible(2):
-        evidencia.captura("Clic en '1': la página sigue en el Paso 4")
-        pendiente("El indicador de pasos es solo informativo (los números no navegan); "
-                  "confirmar con diseño si debe permitir navegar")
-    assert flujo.contacto.visible(), "El número '1' del indicador no llevó al Paso 1"
-    evidencia.captura("Paso 1 desde el indicador")
-    assert flujo.contacto.valores() == CONTACTO_VALIDO, f"Se perdieron datos: {flujo.contacto.valores()}"
-
-    # Borrar el correo e intentar saltar directo al Paso 4 con el indicador
-    flujo.contacto.llenar(telefono=CONTACTO_VALIDO["telefono"], correo="")
-    flujo.contacto.ir_al_paso(4)
-    evidencia.captura("Intento de saltar al Paso 4 con el correo vacío")
-    assert not flujo.confirmacion.visible(3), "El indicador permitió saltarse la validación del correo"

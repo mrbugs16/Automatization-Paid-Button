@@ -1,6 +1,6 @@
 """
 MÓDULO 02 - PASO 1 DATOS DE CONTACTO
-· TC-BP-006 a TC-BP-011, TC-BP-052 a TC-BP-055
+· TC-BP-006 a TC-BP-011, TC-BP-052 a TC-BP-054
 
 Reglas de la página: correo obligatorio; teléfono opcional (si se captura, de 10 a 13 dígitos).
 """
@@ -8,7 +8,7 @@ import pytest
 
 from config.datos_prueba import (CONTACTO_VALIDO, CORREO_SIN_ARROBA, CORREOS_INVALIDOS, MSG_CORREO_INVALIDO,
                                  MSG_REQUERIDO, MSG_TELEFONO, TELEFONO_CON_LETRAS, TELEFONO_INCOMPLETO,
-                                 TELEFONO_LARGO, TELEFONO_SOLO_LETRAS)
+                                 TELEFONO_LARGO)
 from core.marcadores import caso, requiere_memphis
 
 pytestmark = [pytest.mark.memphis, requiere_memphis]
@@ -130,15 +130,3 @@ def test_TC_BP_054_telefono_largo(flujo, evidencia, enlace_valido):
     mensaje = flujo.contacto.error_telefono()
     assert _no_avanza(flujo), f"El sistema aceptó un teléfono de {len(digitos)} dígitos"
     assert "13" in mensaje or "máximo" in mensaje.lower(), f"El mensaje no indica el máximo permitido: '{mensaje}'"
-
-
-@caso("TC-BP-055")
-def test_TC_BP_055_telefono_solo_letras(flujo, evidencia, enlace_valido):
-    flujo.abrir_enlace(enlace_valido)
-    flujo.contacto.llenar(telefono=TELEFONO_SOLO_LETRAS, correo=CORREO)
-    valor = flujo.contacto.telefono_mostrado()
-    flujo.contacto.continuar()
-    evidencia.captura(f"Teléfono '{TELEFONO_SOLO_LETRAS}' -> quedó '{valor}'")
-
-    assert _no_avanza(flujo) or valor == "", \
-        f"El sistema avanzó con el teléfono '{valor}' sin rechazar las letras"

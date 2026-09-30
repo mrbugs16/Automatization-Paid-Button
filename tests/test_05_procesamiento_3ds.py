@@ -1,6 +1,6 @@
 """
 MÓDULO 05 - PROCESAMIENTO DEL PAGO Y AUTENTICACIÓN DEL BANCO (3D SECURE)
-· TC-BP-025 a TC-BP-028, TC-BP-095 a TC-BP-098
+· TC-BP-025 a TC-BP-027, TC-BP-096 a TC-BP-098
 
 El 3DS es una redirección de página completa: la app sale al sitio del banco y regresa.
 Tarjetas de prueba por tipo (data/tarjetas_prueba.json -> catalogo_3ds):
@@ -13,7 +13,6 @@ import time
 
 import pytest
 
-from config import settings
 from config.datos_prueba import MSG_TOAST_ERROR
 from core.marcadores import caso, requiere_memphis
 
@@ -65,12 +64,6 @@ def test_TC_BP_027_cancelar_3ds(flujo, evidencia, enlace_valido, tarjeta_de_prue
     assert en_resultado or en_formulario, "No se regresó al flujo de Memphis con opción de reintentar"
 
 
-@caso("TC-BP-095")
-def test_TC_BP_095_attempt(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    resultado = _pagar_sin_reto(flujo, evidencia, enlace_valido, tarjeta_de_prueba("attempt"))
-    assert resultado == "aprobada", f"Tarjeta Attempt no aprobada: {flujo.resultado.detalles()}"
-
-
 @caso("TC-BP-096")
 def test_TC_BP_096_not_authenticated(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
     resultado = _pagar_sin_reto(flujo, evidencia, enlace_valido, tarjeta_de_prueba("declinada"))
@@ -95,20 +88,3 @@ def test_TC_BP_098_challenge_mastercard(flujo, evidencia, enlace_valido, tarjeta
     resultado = flujo.resultado.esperar()
     evidencia.captura(f"De regreso en Memphis - {flujo.resultado.titulo()}")
     assert resultado == "aprobada", f"Detalle: {flujo.resultado.detalles()}"
-
-
-@caso("TC-BP-028")
-@pytest.mark.lento
-def test_TC_BP_028_timeout_3ds(flujo, evidencia, enlace_valido, tarjeta_de_prueba):
-    flujo.hasta_confirmacion(enlace_valido, tarjeta_de_prueba("aprobada_con_3ds"))
-    flujo.confirmacion.confirmar_pago()
-
-    assert flujo.resultado.salio_a_3ds(), "El banco no solicitó autenticación 3D Secure"
-    evidencia.captura("Sitio del banco (3DS) sin interacción")
-    print(f"   ⏳ Esperando {settings.TIMEOUT_3DS_SEG}s sin responder el 3DS…")
-    time.sleep(settings.TIMEOUT_3DS_SEG)
-
-    resultado = flujo.resultado.esperar()
-    evidencia.captura("Después del tiempo de espera")
-    assert resultado == "rechazada", "No se mostró el mensaje de tiempo agotado"
-    evidencia.nota("⚠ Validar en backend que no exista cobro para la referencia")

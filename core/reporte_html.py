@@ -100,7 +100,8 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 let filtroEstado = '';
 
 document.getElementById('meta').textContent =
-  `Ejecución ${D.ejecucion} · ${D.inicio} → ${D.fin} · Driver: ${D.driver} · Memphis disponible: ${D.memphis ? 'sí' : 'no'}`;
+  `Ejecución ${D.ejecucion} · ${D.inicio} → ${D.fin} · Driver: ${D.driver} · Memphis disponible: ${D.memphis ? 'sí' : 'no'}`
+  + (D.nota ? ` · ${D.nota}` : '');
 
 const cuenta = e => D.casos.filter(c => c.estado === e).length;
 const total = D.casos.length, ejecutados = cuenta('Aprobado') + cuenta('Fallido') + cuenta('Error');

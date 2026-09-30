@@ -41,7 +41,8 @@ def cargar_matriz(ruta=settings.MATRIZ_XLSX):
     casos = {}
     for fila in filas:
         registro = {k: (v if v is not None else "") for k, v in zip(encabezados, fila) if k}
-        if str(registro.get("id", "")).startswith("TC-"):
+        # Las filas con solo el ID son casos eliminados (no se renumeran): se ignoran
+        if str(registro.get("id", "")).startswith("TC-") and registro.get("caso"):
             casos[registro["id"]] = registro
     return casos
 
