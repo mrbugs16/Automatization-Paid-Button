@@ -2,6 +2,8 @@
 Obtención del enlace de pago de Memphis según ORIGEN_ENLACE (manual | api | gobierno).
 El enlace se puede reutilizar mientras el pago no se apruebe.
 """
+import select
+import sys
 import time
 from urllib.parse import urlparse
 
@@ -67,10 +69,28 @@ def _link_memphis_actual(driver):
     return None
 
 
+# Si el tester elige "saltar", no se vuelve a pedir referencia en el resto de la corrida
+captura_saltada = False
+
+
+def _tester_pidio_saltar():
+    """Lee sin bloquear la terminal: 's', '4' o 'saltar' + Enter salta la captura."""
+    try:
+        if not sys.stdin.isatty():
+            return False
+        listo, _, _ = select.select([sys.stdin], [], [], 0)
+        return bool(listo) and sys.stdin.readline().strip().lower() in ("s", "4", "saltar")
+    except (OSError, ValueError, AttributeError):
+        return False  # sin terminal interactiva (ej. panel de Testing): solo aplica el tiempo límite
+
+
 def capturar_desde_portal(driver, evidencia=None, timeout=settings.TIMEOUT_CAPTURA_REFERENCIA):
     """Abre Predial y espera a que el tester capture la referencia/folio + captcha y dé 'Consultar'.
     En la pantalla del adeudo intenta dar clic en el botón de pago; si no lo encuentra, lo da el tester.
-    Regresa la URL del botón de pago de Memphis, o None si se agotó el tiempo."""
+    Regresa la URL del botón de pago de Memphis, o None si se agotó el tiempo o el tester saltó."""
+    global captura_saltada
+    if captura_saltada:
+        return None
     predial = PredialPage(driver)
     predial.abrir_inicio()
     predial.ir_a_predial()
@@ -79,15 +99,24 @@ def capturar_desde_portal(driver, evidencia=None, timeout=settings.TIMEOUT_CAPTU
         evidencia.captura("Portal - Pago de predial: esperando referencia y captcha")
 
     print("\n" + "=" * 64)
-    print(f"🧾 SE NECESITA UNA REFERENCIA NUEVA (tienes {timeout // 60} min):")
+    plazo = f"{timeout // 60} min" if timeout % 60 == 0 else f"{timeout} s"
+    print(f"🧾 SE NECESITA UNA REFERENCIA NUEVA (tienes {plazo}):")
     print("   1. En Chrome, captura la referencia / línea de captura / cuenta.")
     print("   2. Captura el captcha y da clic en 'Consultar'.")
     print("   3. Si en la siguiente pantalla no avanza solo, da clic en el botón de pago.")
+    print("   4. ¿No tienes referencias? Escribe  s  y presiona Enter en esta terminal para SALTAR")
+    print("      (no se volverá a pedir en esta corrida; esas pruebas quedan Pendiente).")
     print("=" * 64)
 
     limite = time.time() + timeout
     intento_boton = False
     while time.time() < limite:
+        if _tester_pidio_saltar():
+            captura_saltada = True
+            print("   ⏭️  Captura de referencia saltada: el resto de pruebas sin link quedarán Pendiente.")
+            if evidencia:
+                evidencia.nota("El tester saltó la captura de referencia")
+            return None
         try:
             url = _link_memphis_actual(driver)
             if url:

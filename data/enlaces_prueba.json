@@ -7,10 +7,11 @@
     "invalidos: links que la suite encontró vencidos/pagados al iniciar una prueba (se mueven solos).",
     "Si no hay links válidos, la suite abre el portal (Predial) y espera 3 min a que captures la referencia + captcha; el link obtenido se agrega aquí solo."
   ],
-  "vigentes": [
-    "https://pagospueblacapital-dev.memphis.mx/payout?token=133de5bc-f7b8-4489-aa28-e084af0e2583&identifier=b64b49e866f7f6ed8a8c8e60c4f265f7137a6bcb908089f9ce45f08c7b71baa4"
+  "vigentes": [],
+  "pagados": [
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=133de5bc-f7b8-4489-aa28-e084af0e2583&identifier=b64b49e866f7f6ed8a8c8e60c4f265f7137a6bcb908089f9ce45f08c7b71baa4",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=9140f420-ee7e-40b5-90fe-1b692f210b82&identifier=d7e252b883e66dae1d9dc3db20b62cc9fa4c5d66054a076d7e0fc2148049b7eb"
   ],
-  "pagados": [],
   "vencido": "",
   "mal_formado": "https://pagospueblacapital-dev.memphis.mx/payout?token=token-invalido-qa",
   "invalidos": [

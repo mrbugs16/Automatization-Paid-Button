@@ -13,6 +13,7 @@ import pytest
 from config import settings
 from core import datos
 from core.driver_factory import crear_driver
+from core import enlace_pago
 from core.enlace_pago import capturar_desde_portal, obtener_enlace_valido
 from core.evidencia import Evidencia
 from core.marcadores import PREFIJO_MANUAL, PREFIJO_PENDIENTE, pendiente
@@ -102,6 +103,8 @@ def enlace_valido(request, driver, evidencia):
             if url:
                 datos.agregar_enlace(url)
                 url = _primer_enlace_que_funcione(driver, url)
+    if not url and enlace_pago.captura_saltada:
+        pendiente("Sin link de pago: se eligió saltar la captura de referencia en esta corrida")
     if not url:
         pendiente(f"No hay link de pago válido (no se capturó una referencia en {settings.TIMEOUT_CAPTURA_REFERENCIA} s "
                   "o no hay links en data/enlaces_prueba.json -> vigentes)")
