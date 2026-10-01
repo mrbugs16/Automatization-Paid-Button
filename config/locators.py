@@ -13,8 +13,10 @@ from selenium.webdriver.common.by import By
 # PORTAL GOBIERNO DE PUEBLA (FUERA DE ALCANCE QA, SOLO PRECONDICIÓN)
 # ==============================================
 class GobiernoLoc:
-    CARD_PREDIAL = (By.CSS_SELECTOR, "a.card-estilo-predial")
+    CARD_PREDIAL = (By.CSS_SELECTOR, "a.card-estilo-predial[href='iniciopredial']")
+    CARD_INFRACCIONES = (By.CSS_SELECTOR, "a.card-estilo-infra[href='indexI']")
     FORMULARIO = (By.CSS_SELECTOR, "#forma")
+    INPUT_FOLIO = (By.CSS_SELECTOR, "#folio")                # Infracciones: máx. 16 dígitos
     SELECT_TIPO = (By.CSS_SELECTOR, "#tipo")                 # PU = Urbano, PR = Rústico
     INPUT_CUENTA = (By.CSS_SELECTOR, "#cuenta")              # máx. 7 dígitos
     INPUT_DELEGACION = (By.CSS_SELECTOR, "#delegacion")      # máx. 2 dígitos

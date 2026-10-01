@@ -30,6 +30,17 @@ INICIO = datetime.now()
 def pytest_addoption(parser):
     parser.addoption("--cuenta", default=None, help="Alias de la cuenta en data/cuentas_predial.json")
     parser.addoption("--abrir-reporte", action="store_true", help="Abre el reporte HTML al terminar")
+    parser.addoption("--servicio", default=None, choices=sorted(settings.SERVICIOS),
+                     help="Trámite del Gobierno del link de pago: predial | transito (default: SERVICIO o predial)")
+
+
+def pytest_configure(config):
+    servicio = config.getoption("--servicio")
+    if servicio:
+        settings.SERVICIO = servicio
+    if settings.SERVICIO not in settings.SERVICIOS:
+        raise pytest.UsageError(f"SERVICIO no soportado: {settings.SERVICIO} (usa predial o transito)")
+    print(f"\nTrámite de esta corrida: {settings.SERVICIOS[settings.SERVICIO]}")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -80,19 +91,26 @@ def cuenta_predial(request):
 
 
 @pytest.fixture
-def tarjeta_de_prueba():
-    """Uso: tarjeta_de_prueba("aprobada_sin_3ds"). Marca Pendiente si falta la tarjeta en data/tarjetas_prueba.json."""
+def tarjeta_de_prueba(request):
+    """Uso: tarjeta_de_prueba("aprobada_sin_3ds"). Marca Pendiente si falta la tarjeta en data/tarjetas_prueba.json.
+    Guarda la tarjeta usada (marca y 3DS) para mostrarla en el reporte."""
     def _obtener(nombre):
         try:
-            return datos.tarjeta(nombre)
+            tarjeta = datos.tarjeta(nombre)
         except LookupError as e:
             pendiente(str(e))
+        usadas = request.node.__dict__.setdefault("tarjetas_usadas", [])
+        if tarjeta not in usadas:
+            usadas.append(tarjeta)
+        return tarjeta
     return _obtener
 
 
 @pytest.fixture
 def enlace_valido(request, driver, evidencia):
     cuenta = None
+    if settings.ORIGEN_ENLACE == "gobierno" and settings.SERVICIO == "transito":
+        pendiente("ORIGEN_ENLACE=gobierno solo genera links de Predial; para Tránsito usa ORIGEN_ENLACE=manual")
     if settings.ORIGEN_ENLACE == "gobierno":
         cuenta = request.getfixturevalue("cuenta_predial")
     url = obtener_enlace_valido(driver, cuenta, evidencia)
@@ -140,6 +158,24 @@ def _liberar_si_se_pago(driver, url):
 # ==============================================
 # REGISTRO DE RESULTADOS
 # ==============================================
+def _servicio(item, marca):
+    """Trámite del caso: el indicado en @caso(servicio=...) o, para Memphis, el de esta corrida."""
+    if marca and marca.kwargs.get("servicio"):
+        return marca.kwargs["servicio"]
+    return settings.SERVICIOS[settings.SERVICIO] if item.get_closest_marker("memphis") else ""
+
+
+def _datos_tarjeta(item):
+    """Marca (VISA/MasterCard) y seguridad (Con 3DS / Sin 3DS) de las tarjetas que usó la prueba."""
+    usadas = getattr(item, "tarjetas_usadas", [])
+    unicos = lambda valores: " / ".join(dict.fromkeys(v for v in valores if v))
+    return {
+        "marca": unicos(t.get("marca") for t in usadas),
+        "seguridad": unicos("Con 3DS" if t.get("requiere_3ds") else "Sin 3DS" for t in usadas),
+        "tipo_3ds": unicos(t.get("tipo_3ds") for t in usadas),
+    }
+
+
 def _clasificar(reporte):
     if reporte.passed:
         return "Aprobado", "Resultado conforme a lo esperado"
@@ -188,7 +224,9 @@ def pytest_runtest_makereport(item, call):
         "error": error,
         "duracion": round(time.time() - getattr(item, "_inicio", time.time()), 1),
         "pasos_evidencia": ev.pasos if ev else [],
-        "meta": dict(marca.kwargs) if marca else {"caso": item.name},
+        "servicio": _servicio(item, marca),
+        **_datos_tarjeta(item),
+        "meta": {k: v for k, v in marca.kwargs.items() if k != "servicio"} if marca else {"caso": item.name},
     }
 
 
@@ -214,6 +252,7 @@ def pytest_sessionfinish(session, exitstatus):
         "fin": datetime.now().strftime("%H:%M:%S"),
         "driver": settings.MODO_DRIVER,
         "memphis": settings.MEMPHIS_DISPONIBLE,
+        "servicio": settings.SERVICIOS[settings.SERVICIO],
         "casos": casos,
     }
     (DIR_EJECUCION / "resultados.json").write_text(json.dumps(datos_reporte, ensure_ascii=False, indent=2), encoding="utf-8")

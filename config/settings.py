@@ -49,9 +49,14 @@ MEMPHIS_DISPONIBLE = _bool("MEMPHIS_DISPONIBLE", "true")
 # api      : se genera con POST a transmission-sequence (requiere firma HMAC)
 # gobierno : se recorre el portal del Gobierno (Predial -> captcha -> pagar)
 ORIGEN_ENLACE = os.getenv("ORIGEN_ENLACE", "manual")
+# Trámite del Gobierno que genera el link de pago (también con --servicio):
+# predial  : Pagos en línea -> Predial (cuenta predial o línea de captura)
+# transito : Pagos en línea -> Infracciones (folio de infracción o línea de captura)
+SERVICIO = os.getenv("SERVICIO", "predial").strip().lower()
+SERVICIOS = {"predial": "Predial", "transito": "Tránsito"}
 ENLACE_PAGO = os.getenv("ENLACE_PAGO", "")
-# Si no hay link válido, la suite abre el portal (Predial) y espera a que el tester capture
-# la referencia/folio + captcha y dé 'Consultar'. Con false, la prueba queda Pendiente.
+# Si no hay link válido, la suite abre el portal (Predial o Infracciones según SERVICIO) y espera
+# 3 min a que el tester capture la referencia/folio + captcha y dé 'Consultar'. Con false, queda Pendiente.
 PEDIR_REFERENCIA = _bool("PEDIR_REFERENCIA", "true")
 TIMEOUT_CAPTURA_REFERENCIA = int(os.getenv("TIMEOUT_CAPTURA_REFERENCIA", "180"))
 

@@ -70,9 +70,14 @@ def enlace_fijo(clave):
     return _leer(settings.ENLACES_JSON).get(clave) or None
 
 
+def _lista_vigentes():
+    """Cada trámite tiene su lista de links: 'vigentes' (Predial) y 'vigentes_transito' (Infracciones)."""
+    return "vigentes_transito" if settings.SERVICIO == "transito" else "vigentes"
+
+
 def enlace_vigente():
-    """Primer link sin pagar de la lista (o ENLACE_PAGO si se pasó por variable)."""
-    return settings.ENLACE_PAGO or next(iter(_leer(settings.ENLACES_JSON).get("vigentes", [])), None)
+    """Primer link sin pagar de la lista del trámite (o ENLACE_PAGO si se pasó por variable)."""
+    return settings.ENLACE_PAGO or next(iter(_leer(settings.ENLACES_JSON).get(_lista_vigentes(), [])), None)
 
 
 def enlace_pagado():
@@ -81,13 +86,13 @@ def enlace_pagado():
 
 def marcar_enlace_pagado(url):
     """Tras un pago aprobado el link ya no sirve: pasa de 'vigentes' a 'pagados' y se usa el siguiente."""
-    datos = _leer(settings.ENLACES_JSON)
-    if url in datos.get("vigentes", []):
-        datos["vigentes"].remove(url)
+    datos, lista = _leer(settings.ENLACES_JSON), _lista_vigentes()
+    if url in datos.get(lista, []):
+        datos[lista].remove(url)
         datos.setdefault("pagados", []).append(url)
         _guardar(settings.ENLACES_JSON, datos)
-        restantes = len(datos["vigentes"])
-        print(f"   🔗 Link pagado; quedan {restantes} link(s) vigente(s) en {settings.ENLACES_JSON.name}")
+        restantes = len(datos[lista])
+        print(f"   🔗 Link pagado; quedan {restantes} link(s) vigente(s) en {settings.ENLACES_JSON.name} -> {lista}")
 
 
 def tarjetas_3ds(tipo=None):
@@ -98,16 +103,16 @@ def tarjetas_3ds(tipo=None):
 
 def agregar_enlace(url):
     datos = _leer(settings.ENLACES_JSON)
-    if url not in datos.setdefault("vigentes", []):
-        datos["vigentes"].append(url)
+    if url not in datos.setdefault(_lista_vigentes(), []):
+        datos[_lista_vigentes()].append(url)
         _guardar(settings.ENLACES_JSON, datos)
 
 
 def descartar_enlace(url, motivo):
     """Saca de 'vigentes' un link que ya no muestra el formulario (vencido, pagado o inválido)."""
-    datos = _leer(settings.ENLACES_JSON)
-    if url in datos.get("vigentes", []):
-        datos["vigentes"].remove(url)
+    datos, lista = _leer(settings.ENLACES_JSON), _lista_vigentes()
+    if url in datos.get(lista, []):
+        datos[lista].remove(url)
         datos.setdefault("invalidos", []).append(url)
         _guardar(settings.ENLACES_JSON, datos)
-        print(f"   ⚠️ Link descartado ({motivo}); quedan {len(datos['vigentes'])} vigente(s) en {settings.ENLACES_JSON.name}")
+        print(f"   ⚠️ Link descartado ({motivo}); quedan {len(datos[lista])} vigente(s) en {settings.ENLACES_JSON.name} -> {lista}")

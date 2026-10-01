@@ -52,6 +52,10 @@ input[type=search]{flex:1;min-width:180px}
 .estado-Fallido,.estado-Error{background:var(--bad-bg);color:var(--bad)}
 .estado-Pendiente{background:var(--pend-bg);color:var(--pend)}
 .estado-Manual{background:var(--man-bg);color:var(--man)}
+.tag.servicio{background:var(--accent);color:#fff}
+.tag.tds-con{background:var(--man-bg);color:var(--man)}
+.tag.tds-sin{background:var(--pend-bg);color:var(--pend)}
+.tag.marca{border:1px solid var(--line);background:transparent;color:var(--text)}
 .detalle{padding:0 14px 14px;border-top:1px solid var(--line)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
 .detalle h4{margin:12px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
@@ -82,6 +86,9 @@ input[type=search]{flex:1;min-width:180px}
   <div class="barra" id="barra"></div>
   <section class="filtros">
     <div class="chips" id="chips"></div>
+    <select id="fServicio" aria-label="Trámite"><option value="">Tránsito y Predial</option></select>
+    <select id="fSeguridad" aria-label="3D Secure"><option value="">Con y sin 3DS</option></select>
+    <select id="fMarca" aria-label="Marca de tarjeta"><option value="">VISA y MasterCard</option></select>
     <select id="fModulo"><option value="">Todos los módulos</option></select>
     <select id="fTipo"><option value="">Todos los tipos</option></select>
     <select id="fPrioridad"><option value="">Todas las prioridades</option></select>
@@ -100,7 +107,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 let filtroEstado = '';
 
 document.getElementById('meta').textContent =
-  `Ejecución ${D.ejecucion} · ${D.inicio} → ${D.fin} · Driver: ${D.driver} · Memphis disponible: ${D.memphis ? 'sí' : 'no'}`
+  `Ejecución ${D.ejecucion} · ${D.inicio} → ${D.fin} · Trámite: ${D.servicio || '—'} · Driver: ${D.driver} · Memphis disponible: ${D.memphis ? 'sí' : 'no'}`
   + (D.nota ? ` · ${D.nota}` : '');
 
 const cuenta = e => D.casos.filter(c => c.estado === e).length;
@@ -127,7 +134,11 @@ const chips = document.getElementById('chips');
 const llenar = (id, campo) => [...new Set(D.casos.map(c => c[campo]).filter(Boolean))].sort()
   .forEach(v => document.getElementById(id).insertAdjacentHTML('beforeend', `<option>${esc(v)}</option>`));
 llenar('fModulo', 'modulo'); llenar('fTipo', 'tipo'); llenar('fPrioridad', 'prioridad');
-['fModulo','fTipo','fPrioridad','fTexto'].forEach(id => document.getElementById(id).addEventListener('input', pintar));
+// Trámite, 3DS y marca: siempre se ofrecen ambas opciones; una prueba con varias tarjetas guarda "VISA / MasterCard"
+const opciones = (id, valores) => valores.forEach(v => document.getElementById(id).insertAdjacentHTML('beforeend', `<option>${esc(v)}</option>`));
+opciones('fServicio', ['Tránsito', 'Predial']); opciones('fSeguridad', ['Con 3DS', 'Sin 3DS']); opciones('fMarca', ['VISA', 'MasterCard']);
+const incluye = (valor, buscado) => !buscado || String(valor || '').split(' / ').includes(buscado);
+['fServicio','fSeguridad','fMarca','fModulo','fTipo','fPrioridad','fTexto'].forEach(id => document.getElementById(id).addEventListener('input', pintar));
 
 function tarjeta(c) {
   const pasos = (c.pasos_evidencia || []).map(p => `
@@ -140,6 +151,9 @@ function tarjeta(c) {
       <span class="id">${esc(c.id)}</span>
       <span class="titulo">${esc(c.caso)}<small>${esc(c.modulo)}</small></span>
       <span class="tags">
+        ${c.servicio ? `<span class="tag servicio">${esc(c.servicio)}</span>` : ''}
+        ${c.seguridad ? `<span class="tag ${c.seguridad.includes('Con') ? 'tds-con' : 'tds-sin'}" title="${esc(c.tipo_3ds)}">${esc(c.seguridad)}</span>` : ''}
+        ${c.marca ? `<span class="tag marca">${esc(c.marca)}</span>` : ''}
         <span class="tag">${esc(c.tipo)}</span><span class="tag">${esc(c.prioridad)}</span>
         ${c.duracion ? `<span class="tag">${c.duracion}s</span>` : ''}
         <span class="tag estado-${esc(c.estado).replace(' ','_')}">${esc(c.estado)}</span>
@@ -154,6 +168,10 @@ function tarjeta(c) {
         <div><h4>Pasos a seguir</h4><p>${esc(c.pasos)}</p></div>
         <div><h4>Datos de prueba</h4><p>${esc(c.datos) || '—'}</p></div>
       </div>
+      <div class="grid2">
+        <div><h4>Trámite</h4><p>${esc(c.servicio) || '<span class="vacio">—</span>'}</p></div>
+        <div><h4>Tarjeta</h4><p>${c.marca ? `${esc(c.marca)} · ${esc(c.seguridad)} (${esc(c.tipo_3ds)})` : '<span class="vacio">Sin tarjeta</span>'}</p></div>
+      </div>
       ${c.error ? `<h4>Detalle del error</h4><pre>${esc(c.error)}</pre>` : ''}
       <h4>Evidencia (${(c.pasos_evidencia || []).length})</h4>
       ${pasos ? `<div class="pasos">${pasos}</div>` : '<p class="vacio">Sin capturas</p>'}
@@ -164,8 +182,9 @@ function tarjeta(c) {
 function pintar() {
   const m = fModulo.value, t = fTipo.value, p = fPrioridad.value, q = fTexto.value.trim().toLowerCase();
   const visibles = D.casos.filter(c =>
-    (!filtroEstado || c.estado === filtroEstado) && (!m || c.modulo === m) && (!t || c.tipo === t) &&
-    (!p || c.prioridad === p) && (!q || [c.id, c.caso, c.obtenido, c.error].join(' ').toLowerCase().includes(q)));
+    (!filtroEstado || c.estado === filtroEstado) && (!fServicio.value || c.servicio === fServicio.value) &&
+    incluye(c.seguridad, fSeguridad.value) && incluye(c.marca, fMarca.value) && (!m || c.modulo === m) && (!t || c.tipo === t) &&
+    (!p || c.prioridad === p) && (!q || [c.id, c.caso, c.obtenido, c.error, c.servicio, c.marca, c.seguridad].join(' ').toLowerCase().includes(q)));
   document.getElementById('contador').textContent = `Mostrando ${visibles.length} de ${total} casos`;
   document.getElementById('lista').innerHTML = visibles.map(tarjeta).join('') || '<p class="vacio">Sin resultados con esos filtros.</p>';
 }

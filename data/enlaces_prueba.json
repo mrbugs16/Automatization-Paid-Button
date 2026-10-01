@@ -1,17 +1,29 @@
 {
   "_instrucciones": [
     "Solo aplica con ORIGEN_ENLACE=manual. También se puede pasar un link con la variable ENLACE_PAGO.",
-    "vigentes: links de pago sin pagar. Todas las pruebas usan el primero; se puede reutilizar mientras no se apruebe un pago.",
+    "vigentes: links de pago sin pagar de PREDIAL. vigentes_transito: links sin pagar de TRÁNSITO (Infracciones). Se usa la lista del trámite elegido con --servicio / SERVICIO.",
+    "Todas las pruebas usan el primero de su lista; se puede reutilizar mientras no se apruebe un pago.",
     "Cuando un pago se APRUEBA, ese link pasa a 'pagados' y las pruebas siguen con el siguiente de la lista.",
     "vencido / mal_formado: enlaces fijos para TC-BP-002. TC-BP-003 usa el último de 'pagados'.",
     "invalidos: links que la suite encontró vencidos/pagados al iniciar una prueba (se mueven solos).",
-    "Si no hay links válidos, la suite abre el portal (Predial) y espera 3 min a que captures la referencia + captcha; el link obtenido se agrega aquí solo."
+    "Si no hay links válidos, la suite abre el portal (Predial o Infracciones) y espera 3 min a que captures la referencia/folio + captcha; el link obtenido se agrega solo a la lista del trámite."
   ],
   "vigentes": [],
+  "vigentes_transito": [],
   "pagados": [
     "https://pagospueblacapital-dev.memphis.mx/payout?token=133de5bc-f7b8-4489-aa28-e084af0e2583&identifier=b64b49e866f7f6ed8a8c8e60c4f265f7137a6bcb908089f9ce45f08c7b71baa4",
     "https://pagospueblacapital-dev.memphis.mx/payout?token=9140f420-ee7e-40b5-90fe-1b692f210b82&identifier=d7e252b883e66dae1d9dc3db20b62cc9fa4c5d66054a076d7e0fc2148049b7eb",
-    "https://pagospueblacapital-dev.memphis.mx/payout?token=11bbfc71-98e9-45bb-b039-36830b07bede&identifier=4e0f3f2bcb2d6075480ba647950a078f3c762bd83bf94174f3878b33e8c2cf29"
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=11bbfc71-98e9-45bb-b039-36830b07bede&identifier=4e0f3f2bcb2d6075480ba647950a078f3c762bd83bf94174f3878b33e8c2cf29",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=cc039827-eae5-4f27-8bbe-1cebcd0e7bb0&identifier=f9572cc575a349334c72b8f52f9c0b21dda2c901c42bbbc5fed22134a67f1b37",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=f35cff8a-67d7-419c-b749-532b63f3bcf7&identifier=d8b647e5d19b7f64f2f33335f0aa343e83c3caa032f345f9de9959ee4e1cacb0",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=df86b78c-b5cf-4a8f-ad2a-fc0583cec6f5&identifier=16e708d4220e7168f20cb3e76548d20ede993b2ef28271bd3f2cac21a4d6856f",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=50b0a3b8-e578-4d5b-9e6c-10a5934d5954&identifier=cfb82ce5cf5130bcf56d519f21144e9b346f5ddebb254926982216a86774f9f6",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=ab4840bf-7e46-4fd0-8a57-8df687bd6b61&identifier=468724b66e401a5131cfc1316cf0d5a9c20db0e8337975150fafb0f4ed71fbd9",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=b637a740-1f2a-438c-95b2-62423adbdc62&identifier=92bc9a2e256a8f885fff5e57d04725b054f8f8ed03dd6e3dafa34de6c173f389",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=c8790981-7c74-49f3-923c-f33dfda53dda&identifier=67c181087f9c32160f7c8fdf499ddbb99ccc8bdd01045e9323e387c9bb0d1232",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=6e5ee6e5-219c-4e12-823f-3af61368b614&identifier=fb9430573e1fec7af7d2995eb4b74e3cbb13e34c024a1c2494bc13010c81815d",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=f6947543-d3e1-4961-a6d2-2726e498f4db&identifier=9024661ccfe1c0ca5bc21f62c12f7ec1cbedef4d65504012c2253c2aa03677b1",
+    "https://pagospueblacapital-dev.memphis.mx/payout?token=259bbb3c-b479-420a-9752-9467f05ef9fe&identifier=96e8295941842ba2fe3f36d8d3fc0b1b53b5abcb9670881b4dc937216706c451"
   ],
   "vencido": "",
   "mal_formado": "https://pagospueblacapital-dev.memphis.mx/payout?token=token-invalido-qa",

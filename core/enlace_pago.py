@@ -13,6 +13,7 @@ from selenium.common.exceptions import WebDriverException
 from config import settings
 from config.locators import GobiernoLoc
 from core import datos
+from pages.gobierno_infracciones_page import InfraccionesPage
 from pages.gobierno_predial_page import PredialPage
 
 
@@ -84,24 +85,36 @@ def _tester_pidio_saltar():
         return False  # sin terminal interactiva (ej. panel de Testing): solo aplica el tiempo límite
 
 
+def _abrir_formulario_portal(driver):
+    """Abre en el portal el formulario del trámite configurado (SERVICIO). Regresa (página, pantalla, qué capturar)."""
+    if settings.SERVICIO == "transito":
+        pagina = InfraccionesPage(driver)
+        pagina.abrir_inicio()
+        pagina.ir_a_infracciones()
+        return pagina, "Pago de infracciones", "el folio de infracción o la línea de captura"
+    pagina = PredialPage(driver)
+    pagina.abrir_inicio()
+    pagina.ir_a_predial()
+    return pagina, "Pago de predial", "la cuenta predial (tipo, cuenta y delegación) o la línea de captura"
+
+
 def capturar_desde_portal(driver, evidencia=None, timeout=settings.TIMEOUT_CAPTURA_REFERENCIA):
-    """Abre Predial y espera a que el tester capture la referencia/folio + captcha y dé 'Consultar'.
-    En la pantalla del adeudo intenta dar clic en el botón de pago; si no lo encuentra, lo da el tester.
-    Regresa la URL del botón de pago de Memphis, o None si se agotó el tiempo o el tester saltó."""
+    """Abre Predial o Infracciones (según SERVICIO) y espera a que el tester capture la referencia/folio
+    + captcha y dé 'Consultar'. En la pantalla del adeudo intenta dar clic en el botón de pago; si no lo
+    encuentra, lo da el tester. Regresa la URL del botón de pago de Memphis, o None si se agotó el tiempo
+    o el tester saltó."""
     global captura_saltada
     if captura_saltada:
         return None
-    predial = PredialPage(driver)
-    predial.abrir_inicio()
-    predial.ir_a_predial()
-    predial.scroll_a(GobiernoLoc.INPUT_CAPTCHA)
+    pagina, pantalla, que_capturar = _abrir_formulario_portal(driver)
+    pagina.scroll_a(GobiernoLoc.INPUT_CAPTCHA)
     if evidencia:
-        evidencia.captura("Portal - Pago de predial: esperando referencia y captcha")
+        evidencia.captura(f"Portal - {pantalla}: esperando referencia y captcha")
 
     print("\n" + "=" * 64)
     plazo = f"{timeout // 60} min" if timeout % 60 == 0 else f"{timeout} s"
-    print(f"🧾 SE NECESITA UNA REFERENCIA NUEVA (tienes {plazo}):")
-    print("   1. En Chrome, captura la referencia / línea de captura / cuenta.")
+    print(f"🧾 SE NECESITA UNA REFERENCIA NUEVA DE {settings.SERVICIOS[settings.SERVICIO].upper()} (tienes {plazo}):")
+    print(f"   1. En Chrome ('{pantalla}'), captura {que_capturar}.")
     print("   2. Captura el captcha y da clic en 'Consultar'.")
     print("   3. Si en la siguiente pantalla no avanza solo, da clic en el botón de pago.")
     print("   4. ¿No tienes referencias? Escribe  s  y presiona Enter en esta terminal para SALTAR")
@@ -123,12 +136,14 @@ def capturar_desde_portal(driver, evidencia=None, timeout=settings.TIMEOUT_CAPTU
                 if evidencia:
                     evidencia.captura("Botón de pago abierto desde el portal")
                 return url
-            if "indexI" in driver.current_url and not intento_boton:
+            # Ya no está el captcha: el tester dio 'Consultar' y se muestra el detalle del adeudo
+            en_portal = settings.DOMINIO_GOBIERNO in driver.current_url
+            if en_portal and not intento_boton and not pagina.existe(GobiernoLoc.IMG_CAPTCHA, timeout=1):
                 intento_boton = True
-                if predial.existe(GobiernoLoc.BTN_PAGAR_EN_LINEA, timeout=3):
+                if pagina.existe(GobiernoLoc.BTN_PAGAR_EN_LINEA, timeout=3):
                     if evidencia:
                         evidencia.captura("Portal - detalle del adeudo")
-                    predial.click(GobiernoLoc.BTN_PAGAR_EN_LINEA)
+                    pagina.click(GobiernoLoc.BTN_PAGAR_EN_LINEA)
         except WebDriverException:
             pass  # la página está navegando
         time.sleep(0.5)
