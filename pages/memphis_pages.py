@@ -14,7 +14,7 @@ from config import settings
 from config.datos_prueba import CONTACTO_VALIDO, DIRECCION_VALIDA, TITULO_APROBADA, TITULO_RECHAZADA
 from core import datos
 from config.locators import (ConfirmacionLoc, ContactoLoc, DireccionLoc, EncabezadoLoc, FormularioLoc,
-                             ResultadoLoc, TarjetaLoc, ValidacionLoc, boton_paso, error_de)
+                             ResultadoLoc, TarjetaLoc, ValidacionLoc, boton_paso, error_de, opcion_msi)
 from pages.base_page import BasePage
 
 
@@ -219,6 +219,43 @@ class ConfirmacionPage(MemphisPage):
             datos[partes[0].strip()] = partes[1].strip() if len(partes) > 1 else ""
         return datos
 
+    # ---------- meses sin intereses (opcional) ----------
+    def ofrece_msi(self, timeout=3):
+        """True si la página muestra 'Tu tarjeta participa en promociones de meses sin intereses...'."""
+        return self.existe(ConfirmacionLoc.TEXTO_MSI, timeout)
+
+    def texto_msi(self):
+        return self.texto(ConfirmacionLoc.TEXTO_MSI)
+
+    def opciones_msi(self):
+        """Textos de los planes ofrecidos, ej. ['6 meses']."""
+        textos = []
+        for radio in self.driver.find_elements(*ConfirmacionLoc.RADIOS_MSI):
+            texto = self.driver.execute_script(
+                "const r = arguments[0];"
+                "const l = r.closest('label') || (r.id && document.querySelector(`label[for='${r.id}']`));"
+                "if (l) return l.innerText;"
+                "let n = r.nextSibling; while (n && !(n.textContent || '').trim()) n = n.nextSibling;"
+                "return n ? n.textContent : '';", radio)
+            textos.append(" ".join((texto or "").split()))
+        return textos
+
+    def plan_msi_seleccionado(self):
+        """Texto del plan marcado, o '' si se paga en una sola exhibición."""
+        for radio, texto in zip(self.driver.find_elements(*ConfirmacionLoc.RADIOS_MSI), self.opciones_msi()):
+            if self.propiedad(radio, "checked"):
+                return texto
+        return ""
+
+    def seleccionar_msi(self, meses=6):
+        radio = self.esperar_visible(opcion_msi(meses))
+        try:
+            radio.click()
+        except Exception:
+            self.driver.execute_script("arguments[0].click();", radio)
+        if not self.propiedad(radio, "checked"):
+            raise AssertionError(f"No se pudo seleccionar el plan de {meses} meses sin intereses")
+
     def confirmar_pago(self):
         self.continuar()
 
@@ -357,6 +394,10 @@ class FlujoPago:
         self.tarjeta.continuar()
         assert self.confirmacion.visible(), f"No se avanzó al Paso 4 - Confirmación: {self.tarjeta.errores()}"
         self._captura("Paso 4 - Revisa tu información antes de pagar")
+        plan = tarjeta.get("msi") or settings.PLAN_MSI
+        if plan and self.confirmacion.ofrece_msi():
+            self.confirmacion.seleccionar_msi(int(plan))
+            self._captura(f"Paso 4 - Plan de {plan} meses sin intereses seleccionado")
 
     def pagar(self, url, tarjeta, **kwargs):
         """Recorre todo el flujo, confirma el pago y regresa 'aprobada' / 'rechazada' / 'invalido'."""

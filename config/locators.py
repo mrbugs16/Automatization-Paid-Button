@@ -113,6 +113,20 @@ class TarjetaLoc:
 class ConfirmacionLoc:
     CONTENEDOR = (By.CSS_SELECTOR, ".payment-summary-container")
     FILAS = (By.CSS_SELECTOR, ".payment-summary__row")    # <span>etiqueta</span><strong>valor</strong>
+    # Meses sin intereses (opcional; solo se ofrece "6 meses" y solo con tarjetas que participan)
+    TEXTO_MSI = (By.XPATH, "//*[contains(normalize-space(text()),'meses sin intereses')]")
+    RADIOS_MSI = (By.CSS_SELECTOR, ".payment-summary-container ~ * input[type='radio'], input[type='radio']")  # los únicos radios del Paso 4
+
+
+def opcion_msi(meses):
+    """Radio del plan de meses sin intereses ('6 meses'): dentro de su <label> o junto a su texto."""
+    texto = f"{meses} meses"
+    return (By.XPATH,
+            f"//label[contains(normalize-space(),'{texto}')]//input[@type='radio']"
+            f" | //input[@type='radio'][following-sibling::*[1][contains(normalize-space(),'{texto}')]"
+            f" or following-sibling::text()[1][contains(normalize-space(),'{texto}')]]"
+            f" | //input[@type='radio'][@value='{meses}']"
+            f" | //input[@type='radio'][@id=//label[contains(normalize-space(),'{texto}')]/@for]")
 
 
 # ==============================================

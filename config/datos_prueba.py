@@ -63,3 +63,10 @@ MSG_LINK_INVALIDO = "Link de pago no válido"
 MSG_TOAST_ERROR = "Ha ocurrido un error al procesar el pago."
 TITULO_APROBADA = "Transacción aprobada"
 TITULO_RECHAZADA = "Transacción rechazada"
+
+# ==============================================
+# PASO 4 - MESES SIN INTERESES (OPCIONAL)
+# ==============================================
+TEXTO_MSI = "Tu tarjeta participa en promociones de meses sin intereses. Seleccionar un plan es opcional:"
+OPCIONES_MSI = ["6 meses"]   # única opción que se ofrece
+MESES_MSI = 6

@@ -81,6 +81,7 @@ python3 -m pytest --servicio predial                     # links de Predial (def
 | `CAPTCHA_MODO` | `manual` · `fijo` · `deshabilitado` | `manual` |
 | `CAPTCHA_VALOR` | valor fijo si el Gobierno lo habilita en QA | — |
 | `CUENTA_ALIAS` | alias de `cuentas_predial.json` | primera `disponible` |
+| `PLAN_MSI` | vacío · `6` (todos los pagos eligen *6 meses* si la tarjeta participa) | vacío (una sola exhibición) |
 | `TIMEOUT_TOKEN_SEG` | máximo que TC-BP-005/044 esperan a que expire el token | `120` (si no pasa nada, falla por tiempo excedido) |
 
 ---
@@ -106,6 +107,13 @@ python3 -m pytest --servicio predial                     # links de Predial (def
 | Not authenticated | 4110 7600 0000 0065 | 5180 3000 0000 0039 | Se rechaza ("Rechazada por 3DS") | `declinada` |
 
 Tarjetas reales de QA van en `data/tarjetas_prueba.local.json` (ignorado por Git); si un escenario existe en ambos archivos, gana el local. La matriz tiene la misma tabla en la hoja **Tarjetas 3DS**.
+
+## Meses sin intereses (Paso 4)
+
+En el Paso 4 la página muestra *"Tu tarjeta participa en promociones de meses sin intereses. Seleccionar un plan es opcional:"* con **una sola opción: 6 meses** (la tarjeta VISA •••• 1111 participa).
+
+- `tests/test_12_meses_sin_intereses.py`: **TC-MSI-001** valida la leyenda, que solo exista *6 meses*, que no venga marcada y que se pueda seleccionar (no cobra). **TC-MSI-002** paga eligiendo 6 meses (cobra; escenario `msi_6_meses`).
+- Un escenario de `tarjetas_prueba.json` con `"msi": 6` elige el plan solo; con `PLAN_MSI=6` lo eligen todos los pagos. Si la tarjeta no participa, el flujo sigue sin plan.
 
 ## Cuentas prediales
 

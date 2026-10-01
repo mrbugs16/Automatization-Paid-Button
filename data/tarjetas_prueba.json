@@ -6,7 +6,8 @@
     "Challenge: el banco pide un código/reto (pruebas CON 3DS; el tester captura el código en Chrome).",
     "Attempt: autenticación intentada; debe aprobarse sin reto.",
     "Not authenticated: la autenticación falla; debe rechazarse ('Rechazada por 3DS').",
-    "Tarjetas reales de QA van en data/tarjetas_prueba.local.json (no se sube). Si un escenario existe en ambos, gana el local."
+    "Tarjetas reales de QA van en data/tarjetas_prueba.local.json (no se sube). Si un escenario existe en ambos, gana el local.",
+    "msi: plan de meses sin intereses a elegir en el Paso 4 (solo existe '6 meses'). Sin 'msi' se paga en una sola exhibición."
   ],
   "catalogo_3ds": [
     {
@@ -140,6 +141,17 @@
       "marca": "VISA",
       "tipo_3ds": "Not authenticated",
       "requiere_3ds": true
+    },
+    "msi_6_meses": {
+      "nombre": "Juan",
+      "apellido": "Hernandez",
+      "numero": "4111111111111111",
+      "vigencia": "1230",
+      "cvv": "123",
+      "marca": "VISA",
+      "tipo_3ds": "Not challenge",
+      "requiere_3ds": false,
+      "msi": 6
     }
   }
 }

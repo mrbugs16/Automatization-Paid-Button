@@ -69,6 +69,13 @@ TIMEOUT_CAPTURA_REFERENCIA = int(os.getenv("TIMEOUT_CAPTURA_REFERENCIA", "180"))
 TRESDS_MODO = os.getenv("TRESDS_MODO", "manual")
 
 # ==============================================
+# MESES SIN INTERESES (PASO 4, OPCIONAL)
+# ==============================================
+# Vacío: los pagos se hacen en una sola exhibición (no se elige plan).
+# 6    : todos los pagos eligen "6 meses" si la tarjeta participa (es la única opción que ofrece la página).
+PLAN_MSI = os.getenv("PLAN_MSI", "").strip()
+
+# ==============================================
 # CAPTCHA (PORTAL DEL GOBIERNO)
 # ==============================================
 # manual        : el script espera a que el tester escriba el captcha en Chrome
